@@ -12,7 +12,7 @@ import (
 func Open(dsn string) (*gorm.DB, error) {
 	return gorm.Open(postgres.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{ SingularTable: true },
-		Logger: logger.Default.LogMode(logger.warn),vg
+		Logger: logger.Default.LogMode(logger.Warn),
 	})
 }
 

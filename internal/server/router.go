@@ -7,13 +7,19 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"github.com/tim-contact/internal/models"
+	"github.com/tim-contact/go-crm/internal/models"
 )
+
+authg := r.Group("/auth")
+{
+	authg.POST("/login", login(db))
+	authg.POST("/register", register(db))
+}
 
 func Router(r *gin.Engine, db *gorm.DB) *gin.Engine {
 	r.GET("/healthz", func(c *gin.Context) { c.String(http.StatusOK, "ok") })
 
-	lead := r.Group("/leads")
+	lead := r.Group("/leads", Authn())
 	{
 		lead.POST("", createLead(db))
 		lead.GET("", listLeads(db))
@@ -29,9 +35,9 @@ func Router(r *gin.Engine, db *gorm.DB) *gin.Engine {
 type leadCreateReq struct {
 	InqID              *string    `json:"inq_id"`
 	FullName           string     `json:"full_name" binding:"required,min=2"`
-	DestinationCountry *string    `json:"destination_country"`
+	DestinationCountry *string    `json:"destination_country" binding:"required, min=2"`
 	Status             *string    `json:"status"`
-	WhatsAppNo         *string    `json:"whatsapp_no"`
+	WhatsAppNo         *string    `json:"whatsapp_no"required, binding:"len=10, numeric"`
 	InquiryDate        *time.Time `json:"inquiry_date"`
 	AllocatedUserID    *string    `json:"allocated_user_id"`
 }

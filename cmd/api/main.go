@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 
 	"github.com/tim-contact/go-crm/internal/config"
 	"github.com/tim-contact/go-crm/internal/db"
@@ -27,7 +26,7 @@ func main() {
 
 	r := gin.Default()
 	srv := &http.Server{
-		Addr: ":8080",
+		Addr: ":8081",
 		Handler: server.Router(r, database),
 	}
 

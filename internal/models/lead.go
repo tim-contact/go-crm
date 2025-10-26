@@ -13,8 +13,11 @@ type Lead struct {
 	AllocatedUserID    *string    `gorm:"column:allocated_user_id" json:"allocated_user_id"`
 	CreatedAt          time.Time  `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt          time.Time  `gorm:"column:updated_at" json:"updated_at"`
+	GroupName          string     `gorm:"column:group_name" json:"group_name"`
+	Branch             string     `gorm:"column:branch" json:"branch"`
+	Remarks            string     `gorm:"column:remarks" json:"remarks"`
 }
 
-func (Lead) TableName() String {
+func (Lead) TableName() string {
 	return "leads"
 }

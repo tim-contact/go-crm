@@ -1,6 +1,7 @@
 # Go CRM API – Sprint 1
 
 ## Run
+go mod tidy
 export $(grep -v '^#' .env | xargs) && go run ./cmd/api
 
 ## Endpoints
