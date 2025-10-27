@@ -10,14 +10,16 @@ import (
 	"github.com/tim-contact/go-crm/internal/models"
 )
 
-authg := r.Group("/auth")
-{
-	authg.POST("/login", login(db))
-	authg.POST("/register", register(db))
-}
-
 func Router(r *gin.Engine, db *gorm.DB) *gin.Engine {
 	r.GET("/healthz", func(c *gin.Context) { c.String(http.StatusOK, "ok") })
+
+	authg := r.Group("/auth")
+	{
+	authg.POST("/login", login(db))
+	authg.POST("/register", register(db))
+	}
+
+
 
 	lead := r.Group("/leads", Authn())
 	{

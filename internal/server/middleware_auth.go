@@ -13,9 +13,8 @@ func Authn() gin.HandlerFunc {
 		h := c.GetHeader("Authorization")
 
 		if !strings.HasPrefix(strings.ToLower(h), "bearer ") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing or invalid authorization header"})(
-				return
-			)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing or invalid authorization header"})
+			return
 		}
 		token := strings.TrimSpace(h[7:])
 		claims, err := auth.ParseToken(token)
@@ -26,12 +25,12 @@ func Authn() gin.HandlerFunc {
 		c.Set("uid", claims.UserID)
 		c.Set("role", claims.Role)
 		c.Next()
-	}
+	}	
 }
 
-fun RequireRole(roles ...string) gin.HandlerFunc {
+func RequireRole(roles ...string) gin.HandlerFunc {
 	allowed := map[string]struct{}{}
-	for _, r := range.roles {
+	for _, r := range roles {
 		allowed[r] = struct{}{}
 	}
 	return func(c *gin.Context) {

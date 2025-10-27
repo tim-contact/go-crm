@@ -36,14 +36,14 @@ func login(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		token, err := auth.GenerateToken(u.ID, u.Role, 15*time.Minute)
-		if err != nil{
+		token, err := auth.NewAccessToken(u.ID, u.Role, 15*time.Minute)
+		if err != nil {
 			c.JSON(500, gin.H{"error": "failed to generate token"});
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"access_token": token, "user": gin.H{
-			"id": u.ID, "name": u.Name, "email": u.Email, "role": u.Role
-		}})
+			"id": u.ID, "name": u.Name, "email": u.Email, "role": u.Role,
+		},})
 	}
 }
 
