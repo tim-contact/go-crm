@@ -37,11 +37,12 @@ func Router(r *gin.Engine, db *gorm.DB) *gin.Engine {
 type leadCreateReq struct {
 	InqID              *string    `json:"inq_id"`
 	FullName           string     `json:"full_name" binding:"required,min=2"`
-	DestinationCountry *string    `json:"destination_country" binding:"required, min=2"`
+	DestinationCountry *string    `json:"destination_country" binding:"required,min=2"`
 	Status             *string    `json:"status"`
-	WhatsAppNo         *string    `json:"whatsapp_no"required, binding:"len=10, numeric"`
+	WhatsAppNo         *string    `json:"whatsapp_no"required, binding:"len=10,numeric"`
 	InquiryDate        *time.Time `json:"inquiry_date"`
 	AllocatedUserID    *string    `json:"allocated_user_id"`
+	BranchID          *string    `json:"branch_id"`
 }
 
 func createLead(db *gorm.DB) gin.HandlerFunc {
@@ -58,6 +59,7 @@ func createLead(db *gorm.DB) gin.HandlerFunc {
 			WhatsAppNo:         req.WhatsAppNo,
 			InquiryDate:        req.InquiryDate,
 			AllocatedUserID:    req.AllocatedUserID,
+			BranchID:          req.BranchID,
 		}
 		if err := db.Create(&m).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()}); return
@@ -126,6 +128,7 @@ type leadUpdateReq struct {
 	WhatsAppNo         *string    `json:"whatsapp_no"`
 	InquiryDate        *time.Time `json:"inquiry_date"`
 	AllocatedUserID    *string    `json:"allocated_user_id"`
+	BranchID		  *string    `json:"branch_id"`
 }
 
 func updateLead(db *gorm.DB) gin.HandlerFunc {
@@ -147,6 +150,7 @@ func updateLead(db *gorm.DB) gin.HandlerFunc {
 		if req.WhatsAppNo != nil { updates["whatsapp_no"] = req.WhatsAppNo }
 		if req.InquiryDate != nil { updates["inquiry_date"] = req.InquiryDate }
 		if req.AllocatedUserID != nil { updates["allocated_user_id"] = req.AllocatedUserID }
+		if req.BranchID != nil { updates["branch_id"] = req.BranchID }	
 
 		if err := db.Model(&m).Updates(updates).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()}); return

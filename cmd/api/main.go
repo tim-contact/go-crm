@@ -24,11 +24,13 @@ func main() {
 		log.Fatalf("db open: %v", err)
 	}
 
+
 	r := gin.Default()
 	srv := &http.Server{
 		Addr: ":8081",
 		Handler: server.Router(r, database),
 	}
+
 
 	go func() {
 		log.Printf("HTTP listening on %s", srv.Addr)

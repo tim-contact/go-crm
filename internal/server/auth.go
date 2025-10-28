@@ -56,7 +56,7 @@ type registerReq struct {
 }
 
 func register(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.context) {
+	return func(c *gin.Context) {
 		var req registerReq
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()}); return

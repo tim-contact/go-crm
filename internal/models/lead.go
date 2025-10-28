@@ -14,7 +14,7 @@ type Lead struct {
 	CreatedAt          time.Time  `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt          time.Time  `gorm:"column:updated_at" json:"updated_at"`
 	GroupName          string     `gorm:"column:group_name" json:"group_name"`
-	Branch             string     `gorm:"column:branch" json:"branch"`
+	BranchID           *string     `gorm:"column:branch_id" json:"branch_id"`
 	Remarks            string     `gorm:"column:remarks" json:"remarks"`
 }
 

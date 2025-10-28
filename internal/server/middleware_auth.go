@@ -17,7 +17,7 @@ func Authn() gin.HandlerFunc {
 			return
 		}
 		token := strings.TrimSpace(h[7:])
-		claims, err := auth.ParseToken(token)
+		claims, err := auth.Parse(token)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 			return 
