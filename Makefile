@@ -1,65 +1,63 @@
-# === Makefile for Go CRM Project ===
-# Usage:
-#   make up           → start PostgreSQL, Redis, and Adminer
-#   make down         → stop and remove containers
-#   make db/apply     → apply database schema.sql
-#   make db/seed      → insert initial data (branches, admin user)
-#   make psql         → open Postgres shell
-#   make logs         → follow container logs
-#   make restart      → restart services
-#   make clean        → remove all volumes (⚠️ destroys data)
-
 SHELL := /bin/bash
-
 ENV_FILE ?= .env
 include $(ENV_FILE)
 export
 
 COMPOSE := docker compose -f docker-compose.yml
 
-# Colors for readability
-GREEN := \033[0;32m
-CYAN := \033[0;36m
-RESET := \033[0m
+# Infra (db, adminer, redis if any)
+infra/up:
+	$(COMPOSE) up -d db adminer
 
-help:
-	@echo "$(CYAN)Available targets:$(RESET)"
-	@grep -E '^[a-zA-Z_-]+:.*?##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?##"} {printf "  $(GREEN)%-15s$(RESET) %s\n", $$1, $$2}'
-
-up: ## Start containers (db, redis, adminer)
-	@echo "$(CYAN)Starting services...$(RESET)"
-	$(COMPOSE) up -d
-
-down: ## Stop containers and remove volumes
-	@echo "$(CYAN)Stopping services...$(RESET)"
+infra/down:
 	$(COMPOSE) down -v
 
-restart: ## Restart all containers
-	@echo "$(CYAN)Restarting...$(RESET)"
-	$(MAKE) down && $(MAKE) up
-
-logs: ## View container logs
+infra/logs:
 	$(COMPOSE) logs -f
 
-ps: ## Show container status
+ps:
 	$(COMPOSE) ps
 
-psql: ## Open Postgres shell
-	@echo "$(CYAN)Connecting to database...$(RESET)"
+psql:
 	psql "$(DB_DSN)"
 
-db/apply: ## Apply schema.sql to database
-	@echo "$(CYAN)Applying schema.sql...$(RESET)"
+db/apply:
 	psql "$(DB_DSN)" -f schema.sql
 
-db/seed: ## Load initial data
-	@echo "$(CYAN)Seeding database...$(RESET)"
+db/seed:
 	psql "$(DB_DSN)" -f seed.sql
 
-db/shell: ## Open an interactive SQL prompt
-	@psql "$(DB_DSN)"
-
-clean: ## Destroys all local volumes (use carefully)
-	@echo "$(CYAN)Destroying local data volumes...$(RESET)"
+clean:
 	$(COMPOSE) down -v
 	docker volume prune -f
+
+# === Local run (no Docker), loads .env ===
+run-local:
+	@env $$(grep -v '^#' .env | xargs) go run ./cmd/api
+
+env/print:
+	@echo "DB_DSN=$(DB_DSN)"
+	@echo "JWT_SECRET=$(JWT_SECRET)"
+
+# === Docker (prod-like, Dockerfile) ===
+api/build:
+	$(COMPOSE) --profile prod build api
+
+api/up:
+	$(COMPOSE) --profile prod up -d api db adminer
+
+api/logs:
+	$(COMPOSE) --profile prod logs -f api
+
+api/down:
+	$(COMPOSE) --profile prod down
+
+# === Docker (dev, compose-only go run) ===
+api-dev/up:
+	$(COMPOSE) --profile dev up -d api-dev db adminer
+
+api-dev/logs:
+	$(COMPOSE) --profile dev logs -f api-dev
+
+api-dev/down:
+	$(COMPOSE) --profile dev down

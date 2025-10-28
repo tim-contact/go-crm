@@ -1,5 +1,7 @@
 
 version: "3.9"
+
+
 services:
   db:
     image: postgres:16-alpine
@@ -20,7 +22,7 @@ services:
   adminer:
     image: adminer:4
     ports:
-      - "8080:8080"
+      - "8082:8080"
     depends_on:
       - db
 
@@ -28,6 +30,43 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+  api:
+    profiles: ["prod"]
+    build: .
+    ports:
+      - "8081:8081"
+    environment:
+      - GIN_MODE=release
+      - JWT_SECRET=${JWT_SECRET}
+      - DB_DSN=postgres://crm:crm@db:5432/crm?sslmode=disable
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s  
+
+  api-dev:
+     profiles: ["dev"]
+     image: golang:1.22
+     working_dir: /app
+     volumes:
+      - ./:/app
+      - go_mod_cache:/go/pkg/mod
+     environment:
+      - GIN_MODE=debug
+      - JWT_SECRET=${JWT_SECRET}
+      - DB_DSN=postgres://crm:crm@db:5432/crm?sslmode=disable
+     command: >
+      sh -c "go mod download &&
+             go run ./cmd/api"
+     ports:
+      - "8081:8081"
+     depends_on:
+      - db
 
 volumes:
   db_data:
+  go_mod_cache:
