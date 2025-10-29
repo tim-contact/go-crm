@@ -48,7 +48,7 @@ func login(db *gorm.DB) gin.HandlerFunc {
 }
 
 type registerReq struct {
-	Name 	string 	`json:"name" binding:"required, min=2"`
+	Name 	string 	`json:"name" binding:"required,min=2"`
 	Email 	string  `json:"email" binding:"required,email"`
 	Phone   string  `json:"phone"`
 	Role    string  `json:"role" binding:"required,oneof=admin coordinator agent viewer"`

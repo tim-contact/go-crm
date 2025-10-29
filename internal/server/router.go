@@ -3,10 +3,12 @@ package server
 import (
 	"net/http" 
 	"time"
-
+	"fmt"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"github.com/tim-contact/go-crm/internal/models"
 )
 
@@ -16,18 +18,18 @@ func Router(r *gin.Engine, db *gorm.DB) *gin.Engine {
 	authg := r.Group("/auth")
 	{
 	authg.POST("/login", login(db))
-	authg.POST("/register", register(db))
+	authg.POST("/register", Authn(), RequireRole("admin"), register(db))
 	}
 
 
 
 	lead := r.Group("/leads", Authn())
 	{
-		lead.POST("", createLead(db))
-		lead.GET("", listLeads(db))
-		lead.GET(":id", getLead(db))
-		lead.PUT(":id", updateLead(db))
-		lead.DELETE(":id", deleteLead(db))
+		lead.POST("", RequireRole("admin", "coordinator", "agent"), createLead(db))
+		lead.GET("", RequireRole("admin", "coordinator", "agent", "viewer"), listLeads(db))
+		lead.GET(":id", RequireRole("admin", "coordinator", "agent", "viewer"), getLead(db))
+		lead.PUT(":id", RequireRole("admin", "coordinator", "agent"), updateLead(db))
+		lead.DELETE(":id", RequireRole("admin", "coordinator"), deleteLead(db))
 	}
 	return r
 }
@@ -39,10 +41,11 @@ type leadCreateReq struct {
 	FullName           string     `json:"full_name" binding:"required,min=2"`
 	DestinationCountry *string    `json:"destination_country" binding:"required,min=2"`
 	Status             *string    `json:"status"`
-	WhatsAppNo         *string    `json:"whatsapp_no"required, binding:"len=10,numeric"`
+	WhatsAppNo         *string    `json:"whatsapp_no" binding:"omitempty,len=10,numeric"`
 	InquiryDate        *time.Time `json:"inquiry_date"`
 	AllocatedUserID    *string    `json:"allocated_user_id"`
-	BranchID          *string    `json:"branch_id"`
+	Branch             string     `json:"branch" binding:"required,min=2"`
+
 }
 
 func createLead(db *gorm.DB) gin.HandlerFunc {
@@ -50,6 +53,14 @@ func createLead(db *gorm.DB) gin.HandlerFunc {
 		var req leadCreateReq
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()}); return
+		}
+
+		branchID, err := resolveBranchIDByName(db, req.Branch)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "invalid branch: " + err.Error(),
+			});
+			return
 		}
 		m := models.Lead{
 			InqID:              req.InqID,
@@ -59,7 +70,7 @@ func createLead(db *gorm.DB) gin.HandlerFunc {
 			WhatsAppNo:         req.WhatsAppNo,
 			InquiryDate:        req.InquiryDate,
 			AllocatedUserID:    req.AllocatedUserID,
-			BranchID:          req.BranchID,
+			BranchID:           &branchID,
 		}
 		if err := db.Create(&m).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()}); return
@@ -79,13 +90,23 @@ type leadFilters struct {
 	Offset      int    `form:"offset,default=0"`
 }
 
+type leadWithBranchResp struct {
+	models.Lead
+	BranchName string `json:"branch_name"`
+}
+
 func listLeads(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
+
 		var f leadFilters
 		if err := c.ShouldBindQuery(&f); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid filters"}); return
-		}
-		q := db.Model(&models.Lead{})
+		}		
+
+		q := db.Table("leads").
+			Select("leads.*, COALESCE(branches.name, '') AS branch_name").
+			Joins("LEFT JOIN branches ON branches.id = leads.branch_id")
+
 		if f.Country != "" {
 			q = q.Where("destination_country ILIKE ?", "%"+f.Country+"%")
 		}
@@ -101,22 +122,32 @@ func listLeads(db *gorm.DB) gin.HandlerFunc {
 		if f.Limit <= 0 || f.Limit > 200 { f.Limit = 50 }
 		if f.Offset < 0 { f.Offset = 0 }
 
-		var items []models.Lead
-		if err := q.Order("created_at DESC").Limit(f.Limit).Offset(f.Offset).Find(&items).Error; err != nil {
+		var out []leadWithBranchResp
+
+		if err := q.Order("created_at DESC").Limit(f.Limit).Offset(f.Offset).Scan(&out).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()}); return
 		}
-		c.JSON(http.StatusOK, items)
+
+		
+		c.JSON(http.StatusOK, out)
 	}
 }
 
 func getLead(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
-		var m models.Lead
-		if err := db.First(&m, "id = ?", id).Error; err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "not found"}); return
+		var out leadWithBranchResp
+		err := db.Table("leads").
+			Select("leads.*, COALESCE(branches.name, '') AS branch_name").
+			Joins("LEFT JOIN branches on branches.id = leads.branch_id").
+			Where("leads.id = ?", id).
+			Scan(&out).Error
+
+		if err != nil || out.ID == "" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+			return
 		}
-		c.JSON(http.StatusOK, m)
+		c.JSON(http.StatusOK, out)
 	}
 }
 
@@ -128,7 +159,7 @@ type leadUpdateReq struct {
 	WhatsAppNo         *string    `json:"whatsapp_no"`
 	InquiryDate        *time.Time `json:"inquiry_date"`
 	AllocatedUserID    *string    `json:"allocated_user_id"`
-	BranchID		  *string    `json:"branch_id"`
+	Branch			   *string    `json:"branch"`
 }
 
 func updateLead(db *gorm.DB) gin.HandlerFunc {
@@ -138,6 +169,7 @@ func updateLead(db *gorm.DB) gin.HandlerFunc {
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()}); return
 		}
+
 		var m models.Lead
 		if err := db.First(&m, "id = ?", id).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "not found"}); return
@@ -150,7 +182,19 @@ func updateLead(db *gorm.DB) gin.HandlerFunc {
 		if req.WhatsAppNo != nil { updates["whatsapp_no"] = req.WhatsAppNo }
 		if req.InquiryDate != nil { updates["inquiry_date"] = req.InquiryDate }
 		if req.AllocatedUserID != nil { updates["allocated_user_id"] = req.AllocatedUserID }
-		if req.BranchID != nil { updates["branch_id"] = req.BranchID }	
+		if req.Branch != nil {
+			branchID, err := resolveBranchIDByName(db, *req.Branch)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid branch:" + err.Error()})
+				return
+			}
+			updates["branch_id"] = &branchID
+		}	
+
+		if len(updates) == 0 {
+			c.JSON(http.StatusOK, m)
+			return
+		}
 
 		if err := db.Model(&m).Updates(updates).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()}); return
@@ -167,4 +211,31 @@ func deleteLead(db *gorm.DB) gin.HandlerFunc {
 		}
 		c.Status(http.StatusNoContent)
 	}
+}
+
+func resolveBranchIDByName(db *gorm.DB, name string) (string, error) {
+	norm := strings.TrimSpace(name)
+	if norm == "" {
+		return "", fmt.Errorf("branch name cannot be empty")
+	}
+
+	var b models.Branch
+	if err := db.Where("lower(name) = lower(?)", norm).First(&b).Error; err == nil {
+		return b.ID, nil
+	}
+
+	b = models.Branch{Name: norm}
+	if err := db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "name"}},
+		DoNothing: true,
+	}).Create(&b).Error; err != nil {
+		return "", err
+	}
+
+	if b.ID == "" {
+		if err := db.Where("lower(name) = lower(?)", norm).First(&b).Error; err != nil {
+			return "", err
+		}
+	}
+	return b.ID, nil
 }
