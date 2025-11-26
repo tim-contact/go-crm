@@ -6,7 +6,7 @@ export type Lead = {
     destination_country?: string;
     status?: string;
     inquiry_date?: string;
-    branch_name?: string
+    branch?: string
 };
 
 export type LeadCreate = {
@@ -14,7 +14,7 @@ export type LeadCreate = {
     destination_country?: string;
     status?: string;
     inquiry_date?: string;
-    branch_name: string;
+    branch: string;
 }
 
 export const listLeads = (params: any) => {

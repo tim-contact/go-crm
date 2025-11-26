@@ -1,8 +1,0 @@
-.git
-tmp
-node_modules
-*.log
-*.local
-.env
-docker-compose*.yaml
-README.md

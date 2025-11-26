@@ -26,7 +26,7 @@ export default function LeadsList() {
     if (!searchTerm.trim()) return data;
     const term = searchTerm.toLowerCase();
     return data.filter((lead) =>
-      [lead.full_name, lead.destination_country, lead.branch_name, lead.status]
+      [lead.full_name, lead.destination_country, lead.branch, lead.status]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term))
     );
@@ -83,7 +83,7 @@ export default function LeadsList() {
               header: "Branch",
               render: (lead) => (
                 <div className="text-sm text-gray-600">
-                  {lead.branch_name || "—"}
+                  {lead.branch || "—"}
                 </div>
               ),
             },

@@ -32,7 +32,8 @@ services:
       - "6379:6379"
   api:
     profiles: ["prod"]
-    build: .
+    build: 
+      context: ./backend
     ports:
       - "8081:8081"
     environment:
@@ -66,6 +67,24 @@ services:
       - "8081:8081"
      depends_on:
       - db
+
+  frontend:
+    profiles: ["prod"]
+    build:
+      context: ./crm-frontend 
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"   
+    depends_on:
+      - api
+    environment:
+      VITE_API_BASE: http://api:8081  
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5173 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 
 volumes:
   db_data:
