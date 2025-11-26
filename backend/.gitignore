@@ -1,0 +1,10 @@
+main
+*.exe
+*.out
+
+go.sum
+*.log
+
+.vscode/
+.idea/
+.DS_Store
