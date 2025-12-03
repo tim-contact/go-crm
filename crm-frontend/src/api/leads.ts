@@ -2,19 +2,23 @@ import { api } from "./client";
 
 export type Lead = {
     id: string;
+    inq_id: string;
     full_name: string;
     destination_country?: string;
     status?: string;
     inquiry_date?: string;
-    branch?: string
+    branch_name: string
+    whatsapp_no?: string
 };
 
 export type LeadCreate = {
+    inq_id?: string;
     full_name: string;
     destination_country?: string;
     status?: string;
     inquiry_date?: string;
     branch: string;
+    whatsapp_no?: string;
 }
 
 export const listLeads = (params: any) => {

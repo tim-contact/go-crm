@@ -1,36 +1,77 @@
 // src/pages/Leads/LeadsList.tsx
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { type Lead, listLeads } from "@/api/leads";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { type Lead, listLeads, createLead, type LeadCreate } from "@/api/leads";
 import { Search, Plus, Edit2, Trash2, Filter } from "lucide-react";
 import { DataTable, DataTableToolbar } from "@/components/Datatable";
 import { Badge, Button, CardDescription, CardTitle } from "@/components/UI";
+import LeadForm from "./LeadForm";
 
 export default function LeadsList() {
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [showNewLeadModal, setShowNewLeadModal] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [error, setError] = useState("");
+  
 
   const { data, isLoading } = useQuery<Lead[]>({
-    queryKey: ["leads", {/* filters */}],
+    queryKey: ["leads", ["leads"]],
     queryFn: () => listLeads({ limit: 50 })
   });
-
-  if (isLoading) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-gray-600 text-lg">Loading...</div>
-    </div>
-  );
 
   const filteredData = useMemo(() => {
     if (!data) return [];
     if (!searchTerm.trim()) return data;
     const term = searchTerm.toLowerCase();
     return data.filter((lead) =>
-      [lead.full_name, lead.destination_country, lead.branch, lead.status]
+      [lead.full_name, lead.destination_country, lead.branch_name, lead.status]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term))
     );
   }, [data, searchTerm]);
+
+  const queryClient = useQueryClient();
+
+  const handleSubmit = async (values: LeadCreate) => {
+
+    // validate whatsapp number format
+    const whatsapp = values.whatsapp_no?.trim();
+    if (whatsapp && !/^\d{10}$/.test(whatsapp)) {
+      setError("Invalid WhatsApp number format.");
+      return;
+    }
+
+    // normalize data
+    let inquiry_date: string | undefined;
+    if (values.inquiry_date) {
+      const d = new Date(values.inquiry_date);
+      if (isNaN(d.getTime())) {
+        setError("Inquiry date is invalid.");
+        return;
+      }
+      inquiry_date = d.toISOString();
+    }
+    if (!values.full_name.trim() || !values.destination_country?.trim() || !values.branch?.trim()) {
+      setError("Name, destination country and branch are required.");
+      return;
+    }
+
+    setError("");
+
+    const payload: LeadCreate = {
+      ...values,
+      branch: values.branch.trim(),
+      status: values.status || "New",
+      whatsapp_no: whatsapp || undefined,
+      inquiry_date,
+    }
+    setError("");
+    await createLead(payload);
+    queryClient.invalidateQueries({ queryKey: ["leads"]});
+    setShowNewLeadModal(false);
+
+  }
 
   const renderStatusBadge = (status?: string) => {
     switch (status) {
@@ -47,6 +88,12 @@ export default function LeadsList() {
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
+      {isLoading && (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-gray-600 text-lg">Loading...</div>
+        </div>
+      )}
+      {!isLoading && (
       <div className="w-full max-w-7xl mx-auto p-6">
         <div className="mb-6 space-y-1">
           <CardTitle className="text-3xl">Leads Management</CardTitle>
@@ -59,6 +106,14 @@ export default function LeadsList() {
           title="All Leads"
           description="Search, filter and manage every lead in the system."
           columns={[
+            {
+              header: "INQ ID",
+              render: (lead) => (
+                <div className="text-sm text-gray-600">
+                  {lead.inq_id}
+                </div>
+              ),
+            },
             {
               header: "Name",
               render: (lead) => (
@@ -80,10 +135,26 @@ export default function LeadsList() {
               render: (lead) => renderStatusBadge(lead.status),
             },
             {
+              header: "Whatsapp Number",
+              render: (lead) => (
+                <div className="text-sm text-gray-600">
+                  {lead.whatsapp_no || "—"}
+                  </div>
+              )
+            },
+            {
               header: "Branch",
               render: (lead) => (
                 <div className="text-sm text-gray-600">
-                  {lead.branch || "—"}
+                  {lead.branch_name || "—"}
+                </div>
+              ),
+            },
+            {
+              header: "Inquiry Date",
+              render: (lead) => (
+                <div className="text-sm text-gray-600">
+                  {lead.inquiry_date ? new Date(lead.inquiry_date).toLocaleDateString() : "—"}
                 </div>
               ),
             },
@@ -132,7 +203,30 @@ export default function LeadsList() {
                 <Button variant="secondary" leftIcon={<Filter className="h-4 w-4" />}>
                   Filter
                 </Button>
-                <Button leftIcon={<Plus className="h-5 w-5" />}>New Lead</Button>
+                <Button leftIcon={<Plus className="h-5 w-5" />} onClick={() => setShowNewLeadModal(true)}>New Lead</Button>
+
+                {showNewLeadModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+                  <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+                    <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">New Lead</h3>
+                    <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowNewLeadModal(false)}></button>
+                  </div>
+
+                  {error && (
+                    <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+                      {error}
+                    </div>
+                  )}
+                  <LeadForm 
+                    onSubmit={handleSubmit}
+                    onCancel={() => setShowNewLeadModal(false)}
+                    />
+                  </div>
+                  </div>
+                  
+                  
+                )}
               </div>
             </DataTableToolbar>
           }
@@ -161,6 +255,7 @@ export default function LeadsList() {
           }
         />
       </div>
+      )}
     </div>
   );
 }

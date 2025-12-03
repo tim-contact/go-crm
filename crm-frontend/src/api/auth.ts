@@ -16,5 +16,5 @@ export const registerUser = (payload: {
     role: "admin" | "coordinator" | "agent" | "viewer";
     password: string;
 }) => {
-    api.post("/auth/register", payload).then(r => r.data);
+    return api.post("/auth/register", payload).then(r => r.data);
 }
