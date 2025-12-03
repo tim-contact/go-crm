@@ -1,8 +1,8 @@
 // src/pages/Leads/LeadsList.tsx
 import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { type Lead, listLeads, createLead, type LeadCreate } from "@/api/leads";
-import { Search, Plus, Edit2, Trash2, Filter } from "lucide-react";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { type Lead, listLeads, createLead, type LeadCreate, deleteLead, updateLead } from "@/api/leads";
+import { Search, Plus, Edit2, Trash2, Filter, Bluetooth } from "lucide-react";
 import { DataTable, DataTableToolbar } from "@/components/Datatable";
 import { Badge, Button, CardDescription, CardTitle } from "@/components/UI";
 import LeadForm from "./LeadForm";
@@ -14,6 +14,7 @@ export default function LeadsList() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [editing, setEditing] = useState<Lead | null>(null);
   
 
   const { data, isLoading } = useQuery<Lead[]>({
@@ -26,7 +27,7 @@ export default function LeadsList() {
     if (!searchTerm.trim()) return data;
     const term = searchTerm.toLowerCase();
     return data.filter((lead) =>
-      [lead.full_name, lead.destination_country, lead.branch_name, lead.status]
+      [lead.inq_id, lead.full_name, lead.destination_country, lead.branch_name, lead.status]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term))
     );
@@ -67,12 +68,18 @@ export default function LeadsList() {
       whatsapp_no: whatsapp,
       inquiry_date,
     }
+    if (!payload) return;
     setError("");
     setSubmitting(true);
     try {
-      await createLead(payload);
+      if (editing) {
+        await updateMutation.mutateAsync({id: editing.id, body: payload});
+      } else {
+        await createLead(payload);
+      }
       queryClient.invalidateQueries({ queryKey: ["leads"]});
       setShowNewLeadModal(false);
+      closeModal();
     } finally {
       setSubmitting(false);
     }
@@ -91,6 +98,33 @@ export default function LeadsList() {
         return <Badge variant="neutral">{status || "Unknown"}</Badge>;
     }
   };
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteLead(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leads"]});
+    }
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({id, body}: {id: string, body: Partial<LeadCreate>}) => 
+      updateLead(id, body),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["leads"]});
+    }
+  });
+
+  const openEdit = (lead: Lead) => {
+    setEditing(lead);
+    setShowNewLeadModal(true);
+  }
+
+  const closeModal = () => {
+    setEditing(null);
+    setShowNewLeadModal(false);
+  }
+
+
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
@@ -168,12 +202,13 @@ export default function LeadsList() {
               header: "Actions",
               align: "right",
               className: "w-40",
-              render: () => (
+              render: (lead) => (
                 <div className="flex items-center justify-end gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
                     leftIcon={<Edit2 className="h-4 w-4" />}
+                    onClick={() => openEdit(lead)}
                   >
                     Edit
                   </Button>
@@ -182,8 +217,18 @@ export default function LeadsList() {
                     size="sm"
                     className="text-red-600 hover:bg-red-50"
                     leftIcon={<Trash2 className="h-4 w-4" />}
+
+                    onClick={() => {
+                      if (!confirm(`Delete ${lead.full_name}?`)) return;
+                      if (deleteMutation.isError) {
+                        setError(`{deleteMutation.error as string}`);
+                        return
+                      }
+                      deleteMutation.mutate(lead.id);
+                    }}
+                    disabled={deleteMutation.isPending}
                   >
-                    Delete
+                    {deleteMutation.isPending ? "Deleting..." : "Delete"}
                   </Button>
                 </div>
               ),
@@ -216,7 +261,7 @@ export default function LeadsList() {
                   <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
                     <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold">New Lead</h3>
-                    <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowNewLeadModal(false)}></button>
+                    <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowNewLeadModal(false)}>X</button>
                   </div>
 
                   {error && (
@@ -225,9 +270,10 @@ export default function LeadsList() {
                     </div>
                   )}
                   <LeadForm 
+                    initial={editing ? {...editing, branch: editing.branch_name} : undefined}
                     onSubmit={handleSubmit}
                     onCancel={() => setShowNewLeadModal(false)}
-                    submitting={submitting}
+                    submitting={submitting || updateMutation.isPending}
                     />
                   </div>
                   </div>
