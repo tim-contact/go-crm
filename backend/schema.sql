@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS branches (
 -- SPECIAL COMMENT -> special_comment
 CREATE TABLE IF NOT EXISTS leads (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    inq_id              TEXT UNIQUE,
+    inq_id              TEXT NOT NULL UNIQUE,
     full_name           TEXT NOT NULL,
     group_name          TEXT,
     destination_country TEXT,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS leads (
     visa_category       TEXT,
     principal           TEXT,
     gpa                 TEXT,
-    whatsapp_no         TEXT,
+    whatsapp_no         TEXT NOT NULL,
     whatsapp_no_e164    TEXT, -- normalized in app; can be UNIQUE if policy allows
     contact_method      TEXT,
     lead_type           TEXT,

@@ -7,10 +7,11 @@ type props = {
     initial?: Partial<LeadCreate>;
     onSubmit: (values: LeadCreate) => void;
     onCancel: () => void;
+    submitting?: boolean;
 
 };
 
-export default function LeadForm({ initial, onSubmit, onCancel }: props) {
+export default function LeadForm({ initial, onSubmit, onCancel, submitting }: props) {
 
     const getCurrentTime = () => {
         if (initial?.inquiry_date) {
@@ -68,13 +69,13 @@ export default function LeadForm({ initial, onSubmit, onCancel }: props) {
 
             <div>
                 <label className="block text-sm font-medium text-gray-700">Inquiry Date</label>
-                <input className="w-full border rounded px-3 py-2" type="datetime-local" value={values.inquiry_date} onChange={handleChange("inquiry_date")} required/>
+                <input className="w-full border rounded px-3 py-2" type="datetime-local" value={values.inquiry_date} onChange={handleChange("inquiry_date")} />
             </div>
 
 
             <div>
                 <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
-                <Button type="submit" className="ml-2">Save</Button>
+                <Button type="submit" disabled={submitting} className="ml-2"> {submitting ? "Saving..." : "Save"}</Button>
             </div>
         </form>
     );

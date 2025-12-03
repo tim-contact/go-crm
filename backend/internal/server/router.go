@@ -37,11 +37,11 @@ func Router(r *gin.Engine, db *gorm.DB) *gin.Engine {
 // Handlers
 
 type leadCreateReq struct {
-	InqID              *string    `json:"inq_id"`
+	InqID              string    `json:"inq_id"`
 	FullName           string     `json:"full_name" binding:"required,min=2"`
 	DestinationCountry *string    `json:"destination_country" binding:"required,min=2"`
 	Status             *string    `json:"status"`
-	WhatsAppNo         *string    `json:"whatsapp_no" binding:"omitempty,len=10,numeric"`
+	WhatsAppNo         string    `json:"whatsapp_no" binding:"omitempty,len=10,numeric"`
 	InquiryDate        *time.Time `json:"inquiry_date"`
 	AllocatedUserID    *string    `json:"allocated_user_id"`
 	Branch             string     `json:"branch" binding:"required,min=2"`

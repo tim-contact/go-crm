@@ -13,10 +13,11 @@ export default function LeadsList() {
   const [showNewLeadModal, setShowNewLeadModal] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   
 
   const { data, isLoading } = useQuery<Lead[]>({
-    queryKey: ["leads", ["leads"]],
+    queryKey: ["leads"],
     queryFn: () => listLeads({ limit: 50 })
   });
 
@@ -63,13 +64,18 @@ export default function LeadsList() {
       ...values,
       branch: values.branch.trim(),
       status: values.status || "New",
-      whatsapp_no: whatsapp || undefined,
+      whatsapp_no: whatsapp,
       inquiry_date,
     }
     setError("");
-    await createLead(payload);
-    queryClient.invalidateQueries({ queryKey: ["leads"]});
-    setShowNewLeadModal(false);
+    setSubmitting(true);
+    try {
+      await createLead(payload);
+      queryClient.invalidateQueries({ queryKey: ["leads"]});
+      setShowNewLeadModal(false);
+    } finally {
+      setSubmitting(false);
+    }
 
   }
 
@@ -221,6 +227,7 @@ export default function LeadsList() {
                   <LeadForm 
                     onSubmit={handleSubmit}
                     onCancel={() => setShowNewLeadModal(false)}
+                    submitting={submitting}
                     />
                   </div>
                   </div>
