@@ -26,7 +26,7 @@ export default function LeadsList() {
     if (!searchTerm.trim()) return data;
     const term = searchTerm.toLowerCase();
     return data.filter((lead) =>
-      [lead.inq_id, lead.full_name, lead.destination_country, lead.branch, lead.status]
+      [lead.inq_id, lead.full_name, lead.destination_country, lead.branch_name, lead.status]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term))
     );
@@ -223,7 +223,7 @@ export default function LeadsList() {
               header: "Allocated User",
               render: (lead) => (
                 <div className="text-sm text-gray-600">
-                  {lead.allocated_user || "—"}
+                  {lead.allocated_user_id || "—"}
                 </div>
               ),
             },
@@ -247,7 +247,7 @@ export default function LeadsList() {
               header: "Branch",
               render: (lead) => (
                 <div className="text-sm text-gray-600">
-                  {lead.branch || "—"}
+                  {lead.branch_name || "—"}
                 </div>
               ),
             },
@@ -331,7 +331,7 @@ export default function LeadsList() {
                     </div>
                   )}
                   <LeadForm 
-                    initial={editing ? {...editing, branch: editing.branch} : undefined}
+                    initial={editing ? {...editing, branch: editing.branch_name} : undefined}
                     onSubmit={handleSubmit}
                     onCancel={() => closeModal()}
                     submitting={submitting || updateMutation.isPending}
