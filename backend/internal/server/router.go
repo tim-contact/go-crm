@@ -172,6 +172,12 @@ type leadUpdateReq struct {
 	FullName           *string    `json:"full_name"`
 	DestinationCountry *string    `json:"destination_country"`
 	Status             *string    `json:"status"`
+	FieldOfStudy       *string    `json:"field_of_study"`
+	Age 			   *int    `json:"age" binding:"omitempty,numeric"`
+	VisaCategory       *string    `json:"visa_category"`
+	Principal          *string    `json:"principal"`
+	GPA                *float32   `json:"gpa" binding:"omitempty,gte=0,lte=4"`
+	Team	           *string    `json:"team"`
 	WhatsAppNo         *string    `json:"whatsapp_no"`
 	InquiryDate        *time.Time `json:"inquiry_date"`
 	AllocatedUserID    *string    `json:"allocated_user_id"`
@@ -195,6 +201,12 @@ func updateLead(db *gorm.DB) gin.HandlerFunc {
 		if req.FullName != nil { updates["full_name"] = *req.FullName }
 		if req.DestinationCountry != nil { updates["destination_country"] = req.DestinationCountry }
 		if req.Status != nil { updates["status"] = req.Status }
+		if req.FieldOfStudy != nil { updates["field_of_study"] = req.FieldOfStudy }
+		if req.Age != nil { updates["age"] = req.Age}
+		if req.VisaCategory != nil { updates["visa_category"] = req.VisaCategory }
+		if req.Principal != nil { updates["principal"] = req.Principal }
+		if req.GPA != nil { updates["gpa"] = req.GPA }
+		if req.Team != nil { updates["team"] = req.Team }
 		if req.WhatsAppNo != nil { updates["whatsapp_no"] = req.WhatsAppNo }
 		if req.InquiryDate != nil { updates["inquiry_date"] = req.InquiryDate }
 		if req.AllocatedUserID != nil { updates["allocated_user_id"] = req.AllocatedUserID }
