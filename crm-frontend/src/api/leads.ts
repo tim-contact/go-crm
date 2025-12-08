@@ -11,11 +11,11 @@ export type Lead = {
     visa_category?: string;
     principal? : string;
     gpa?: number;
-    allocated_user: string;
+    allocated_user_id: string;
     team?: string;
     whatsapp_no: string
     inquiry_date?: string;
-    branch: string
+    branch_name: string
 };
 
 export type LeadCreate = {

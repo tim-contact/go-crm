@@ -48,6 +48,7 @@ export default function LeadForm({ initial, onSubmit, onCancel, submitting }: pr
         <form 
         onSubmit={(e) => {
             e.preventDefault();
+            console.log("Form values:", values); 
             onSubmit(values);
         }}>
             <div>
