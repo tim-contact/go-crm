@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS leads (
     age                 SMALLINT CHECK (age IS NULL OR age BETWEEN 10 AND 90),
     visa_category       TEXT,
     principal           TEXT,
-    gpa                 TEXT,
+    gpa                 NUMERIC(4, 2) CHECK (gpa IS NULL OR (gpa >= 0.0 AND gpa <= 4.0)),
     whatsapp_no         TEXT NOT NULL,
     whatsapp_no_e164    TEXT, -- normalized in app; can be UNIQUE if policy allows
     contact_method      TEXT,

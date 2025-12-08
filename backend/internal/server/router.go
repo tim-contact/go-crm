@@ -40,11 +40,19 @@ type leadCreateReq struct {
 	InqID              string    `json:"inq_id"`
 	FullName           string     `json:"full_name" binding:"required,min=2"`
 	DestinationCountry *string    `json:"destination_country" binding:"required,min=2"`
+	Branch             string     `json:"branch" binding:"required,min=2"`
+	FieldOfStudy       *string    `json:"field_of_study"`
+	Age 			   *int    `json:"age" binding:"omitempty,numeric"`
+	VisaCategory       *string    `json:"visa_category"`
+	Principal          *string    `json:"principal"`
+	GPA                *float32   `json:"gpa" binding:"omitempty,gte=0,lte=4"`
+	Team	           *string    `json:"team"`
 	Status             *string    `json:"status"`
 	WhatsAppNo         string    `json:"whatsapp_no" binding:"omitempty,len=10,numeric"`
 	InquiryDate        *time.Time `json:"inquiry_date"`
 	AllocatedUserID    *string    `json:"allocated_user_id"`
-	Branch             string     `json:"branch" binding:"required,min=2"`
+	GroupName		  *string     `json:"group_name"`
+	Remarks			  *string     `json:"remarks"`
 
 }
 
@@ -52,6 +60,7 @@ func createLead(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req leadCreateReq
 		if err := c.ShouldBindJSON(&req); err != nil {
+			fmt.Printf("Error binding JSON: %v\n", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()}); return
 		}
 
@@ -66,6 +75,13 @@ func createLead(db *gorm.DB) gin.HandlerFunc {
 			InqID:              req.InqID,
 			FullName:           req.FullName,
 			DestinationCountry: req.DestinationCountry,
+			FieldOfStudy:       req.FieldOfStudy,
+			Age:                req.Age,
+			VisaCategory:       req.VisaCategory,
+			Principal:          req.Principal,
+			GPA:                req.GPA,
+			Team:			    req.Team,
+			GroupName:		    req.GroupName,
 			Status:             req.Status,
 			WhatsAppNo:         req.WhatsAppNo,
 			InquiryDate:        req.InquiryDate,

@@ -3,7 +3,7 @@ package models
 import "time"
 
 type User struct {
-	ID     string `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	ID     string `gorm:"primaryKey" json:"id"`
 	Name   string `gorm:"column:name;not null" json:"name"`
 	Email  string `gorm:"column:email;type:citext;uniqueIndex;not null" json:"email"`
 	Phone  *string `gorm:"column:phone;uniqueIndex" json:"phone"`

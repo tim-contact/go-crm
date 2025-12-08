@@ -10,6 +10,7 @@ import (
 
 	"github.com/tim-contact/go-crm/internal/models"
 	"github.com/tim-contact/go-crm/internal/auth"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 type loginReq struct {
@@ -61,8 +62,19 @@ func register(db *gorm.DB) gin.HandlerFunc {
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()}); return
 		}
-		hash, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+
+		id, err := gonanoid.New(10)
+		if err != nil {
+			c.JSON(500, gin.H{"error": "failed to generate user ID"}); return
+		}
+
+		hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+
+		if err != nil {	
+			c.JSON(500, gin.H{"error": "failed to hash password"}); return
+		}	
 		u := models.User{
+			ID:    id,
 			Name: req.Name,
 			Email: req.Email,
 			Role: req.Role,

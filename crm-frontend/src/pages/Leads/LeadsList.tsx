@@ -1,4 +1,3 @@
-// src/pages/Leads/LeadsList.tsx
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { type Lead, listLeads, createLead, type LeadCreate, deleteLead, updateLead } from "@/api/leads";
@@ -27,7 +26,7 @@ export default function LeadsList() {
     if (!searchTerm.trim()) return data;
     const term = searchTerm.toLowerCase();
     return data.filter((lead) =>
-      [lead.inq_id, lead.full_name, lead.destination_country, lead.branch_name, lead.status]
+      [lead.inq_id, lead.full_name, lead.destination_country, lead.branch, lead.status]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term))
     );
@@ -40,8 +39,7 @@ export default function LeadsList() {
     // validate whatsapp number format
     const whatsapp = values.whatsapp_no?.trim();
     if (whatsapp && !/^\d{10}$/.test(whatsapp)) {
-      setError("Invalid WhatsApp number format.");
-      return;
+      setError("Invalid WhatsApp number format."); return;
     }
 
     // normalize data
@@ -115,11 +113,13 @@ export default function LeadsList() {
   });
 
   const openEdit = (lead: Lead) => {
+    setError("");
     setEditing(lead);
     setShowNewLeadModal(true);
   }
 
   const closeModal = () => {
+    setError("");
     setEditing(null);
     setShowNewLeadModal(false);
   }
@@ -175,10 +175,71 @@ export default function LeadsList() {
               render: (lead) => renderStatusBadge(lead.status),
             },
             {
+              header: "Field of Study",
+              render: (lead) => (
+                <div className="text-sm text-gray-600">
+                  {lead.field_of_study || "—"}
+                </div>
+              ),
+            },
+
+            {
+              header: "Age",
+              render: (lead) => (
+                <div className="text-sm text-gray-600">
+                  {lead.age !== undefined ? lead.age : "—"}
+                </div>
+              ),
+            },
+
+            {
+              header: "Visa Category",
+              render: (lead) => (
+                <div className="text-sm text-gray-600">
+                  {lead.visa_category || "—"}
+                </div>
+              ),  
+            },
+
+            {
+              header: "Principal",
+              render: (lead) => (
+                <div className="text-sm text-gray-600">
+                  {lead.principal || "—"}
+                </div>
+              ),
+            },
+
+            {
+              header: "GPA",
+              render: (lead) => (
+                <div className="text-sm text-gray-600">
+                  {lead.gpa !== undefined ? lead.gpa : "n/a"}
+                </div>
+              )
+            },
+
+            {
+              header: "Allocated User",
+              render: (lead) => (
+                <div className="text-sm text-gray-600">
+                  {lead.allocated_user || "—"}
+                </div>
+              ),
+            },
+            {
+              header: "Team",
+              render: (lead) => (
+                <div className="text-sm text-gray-600">
+                  {lead.team || "—"}
+                </div>
+              ),
+            },
+            {
               header: "Whatsapp Number",
               render: (lead) => (
                 <div className="text-sm text-gray-600">
-                  {lead.whatsapp_no || "—"}
+                  {lead.whatsapp_no}
                   </div>
               )
             },
@@ -186,7 +247,7 @@ export default function LeadsList() {
               header: "Branch",
               render: (lead) => (
                 <div className="text-sm text-gray-600">
-                  {lead.branch_name || "—"}
+                  {lead.branch || "—"}
                 </div>
               ),
             },
@@ -261,7 +322,7 @@ export default function LeadsList() {
                   <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
                     <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold">New Lead</h3>
-                    <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowNewLeadModal(false)}>X</button>
+                    <button className="text-gray-500 hover:text-gray-700" onClick={() => closeModal()}>X</button>
                   </div>
 
                   {error && (
@@ -270,9 +331,9 @@ export default function LeadsList() {
                     </div>
                   )}
                   <LeadForm 
-                    initial={editing ? {...editing, branch: editing.branch_name} : undefined}
+                    initial={editing ? {...editing, branch: editing.branch} : undefined}
                     onSubmit={handleSubmit}
-                    onCancel={() => setShowNewLeadModal(false)}
+                    onCancel={() => closeModal()}
                     submitting={submitting || updateMutation.isPending}
                     />
                   </div>

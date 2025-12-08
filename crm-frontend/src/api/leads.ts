@@ -6,9 +6,16 @@ export type Lead = {
     full_name: string;
     destination_country?: string;
     status?: string;
+    field_of_study?: string;
+    age?: number;
+    visa_category?: string;
+    principal? : string;
+    gpa?: number;
+    allocated_user: string;
+    team?: string;
+    whatsapp_no: string
     inquiry_date?: string;
-    branch_name: string
-    whatsapp_no?: string
+    branch: string
 };
 
 export type LeadCreate = {
@@ -16,6 +23,13 @@ export type LeadCreate = {
     full_name: string;
     destination_country?: string;
     status?: string;
+    field_of_study?: string;
+    age?: number;
+    visa_category?: string;
+    principal? : string;
+    gpa?: number;
+    allocated_user_id?: string;
+    team?: string;
     inquiry_date?: string;
     branch: string;
     whatsapp_no: string;

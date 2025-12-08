@@ -29,6 +29,9 @@ psql:
 db/apply:
 	docker exec -i $$(docker ps -qf "name=db") psql -U crm -d crm < backend/schema.sql
 
+db/migrate:
+	docker exec -i $$(docker ps -qf "name=db") psql -U crm -d crm < backend/migrations/convert_uuid_to_nanoid.sql
+
 db/seed:
 	docker exec -i $$(docker ps -qf "name=db") psql -U crm -d crm < backend/seed.sql
 
