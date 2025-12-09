@@ -1,41 +1,34 @@
+// migrate/migrate.go
 package migrate
 
 import (
-    "database/sql"
-    "fmt"
-    "io/ioutil"
-    _ "github.com/lib/pq"
-    "log"
+  "database/sql"
+  "embed"
+  "fmt"
+  _ "github.com/lib/pq"
+  "log"
 )
 
+var fs embed.FS
+
 func RunMigrations(dsn string) error {
-    db, err := sql.Open("postgres", dsn)
-    if err != nil {
-        return fmt.Errorf("failed to connect to DB: %w", err)
+  db, err := sql.Open("postgres", dsn)
+  if err != nil { return fmt.Errorf("db connect: %w", err) }
+  defer db.Close()
+
+  files := []string{
+    "migrations/schema.sql",
+    "migrations/convert_uuid_to_nanoid.sql",
+    "migrations/seed.sql",
+  }
+  for _, f := range files {
+    sqlBytes, err := fs.ReadFile(f)
+    if err != nil { return fmt.Errorf("read %s: %w", f, err) }
+    log.Println("Running migration:", f)
+    if _, err := db.Exec(string(sqlBytes)); err != nil {
+      return fmt.Errorf("exec %s: %w", f, err)
     }
-
-    defer db.Close()
-
-    files := []string{
-        "migrations/schema.sql",
-		"migrations/convert_uuid_to_nanoid.sql",
-        "migrations/seed.sql",
-    }
-
-    for _, f := range files {
-        content, err := ioutil.ReadFile(f)
-        if err != nil {
-            return fmt.Errorf("failed to read %s: %w", f, err)
-        }
-
-        log.Println("Running migration:", f)
-
-        _, err = db.Exec(string(content))
-        if err != nil {
-            return fmt.Errorf("error executing %s: %w", f, err)
-        }
-    }
-
-    log.Println("All migrations applied successfully.")
-    return nil
+  }
+  log.Println("Migrations applied.")
+  return nil
 }

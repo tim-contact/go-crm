@@ -25,8 +25,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("db open: %v", err)
 	}
- 	if err := migrate.RunMigrations(database); err != nil {
-        log.Fatal("Migration failed: ", err)
+ 	if err := migrate.RunMigrations(cfg.DB_DSN); err != nil {
+        log.Fatal("Migration: %v", err)
     }
 
 	log.Println("Database connected, migrations applied")
