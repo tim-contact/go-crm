@@ -4,11 +4,11 @@
 CREATE EXTENSION IF NOT EXISTS citext;
 
 -- Branches
-INSERT INTO branches (id, name)
+INSERT INTO branches (name)
 VALUES
-  (NULL, 'Colombo'),
-  (NULL, 'Kandy'),
-  (NULL, 'Jaffna')
+  ('Colombo'),
+  ('Kandy'),
+  ('Jaffna')
 ON CONFLICT DO NOTHING;
 
 -- Admin user
