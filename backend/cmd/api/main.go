@@ -15,6 +15,7 @@ import (
 	"github.com/tim-contact/go-crm/internal/config"
 	"github.com/tim-contact/go-crm/internal/db"
 	"github.com/tim-contact/go-crm/internal/server"
+	"github.com/tim-contact/go-crm/migrate"
 )
 
 func main() {
@@ -24,7 +25,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("db open: %v", err)
 	}
+ 	if err := migrate.RunMigrations(dsn); err != nil {
+        log.Fatal("Migration failed: ", err)
+    }
 
+	log.Println("Database connected, migrations applied")
 
 	r := gin.Default()
 
