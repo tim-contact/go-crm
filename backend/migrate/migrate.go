@@ -8,7 +8,7 @@ import (
   "log"
 )
 
-//go:embed ../migrations/*.sql
+//go:embed migrations/*.sql
 var fs embed.FS
 
 func RunMigrations(dsn string) error {
@@ -17,9 +17,9 @@ func RunMigrations(dsn string) error {
   defer db.Close()
 
   files := []string{
-    "../migrations/schema.sql",
-    "../migrations/convert_uuid_to_nanoid.sql",
-    "../migrations/seed.sql",
+    "migrations/schema.sql",
+    "migrations/convert_uuid_to_nanoid.sql",
+    "migrations/seed.sql",
   }
   for _, f := range files {
     sqlBytes, err := fs.ReadFile(f)
