@@ -1,4 +1,3 @@
-// migrate/migrate.go
 package migrate
 
 import (
@@ -9,6 +8,7 @@ import (
   "log"
 )
 
+//go:embed migrations/*.sql
 var fs embed.FS
 
 func RunMigrations(dsn string) error {
