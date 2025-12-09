@@ -8,7 +8,7 @@ import (
   "log"
 )
 
-//go:embed migrations/*.sql
+//go:embed ../migrations/*.sql
 var fs embed.FS
 
 func RunMigrations(dsn string) error {
