@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { type Lead, listLeads, createLead, type LeadCreate, deleteLead, updateLead } from "@/api/leads";
-import { Search, Plus, Edit2, Trash2, Filter, Bluetooth } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, Filter } from "lucide-react";
 import { DataTable, DataTableToolbar } from "@/components/Datatable";
 import { Badge, Button, CardDescription, CardTitle } from "@/components/UI";
 import LeadForm from "./LeadForm";
@@ -10,7 +10,6 @@ export default function LeadsList() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showNewLeadModal, setShowNewLeadModal] = useState(false);
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [editing, setEditing] = useState<Lead | null>(null);
