@@ -46,7 +46,7 @@ func (h *LeadNoteHandler) GetLeadNotes(c *gin.Context) {
 
 	var notes []models.LeadNote
 
-	if err := h.db.Where ("id = ?", leadID).Order("created_at DESC").Find(&notes).Error; err != nil {
+	if err := h.db.Where ("lead_id = ?", leadID).Order("created_at DESC").Find(&notes).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
