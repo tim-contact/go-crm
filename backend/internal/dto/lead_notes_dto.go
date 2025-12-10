@@ -12,12 +12,12 @@ type LeadNoteResponse struct {
 	ID          string     `json:"id"`
 	LeadID      string     `json:"lead_id"`
 	Body        string     `json:"body"`
-	CreatedBy   string     `json: "created_by"`
+	CreatedBy   string     `json:"created_by"`
 	CreatedAt   time.Time  `json:"created_at"`
 }
 
 type UpdateLeadNote struct {
-	Body    string     `json:"body" binding:"required, min=2"`
+	Body    string     `json:"body" binding:"required,min=2"`
 }
 
 type LeadNoteListResponse struct {

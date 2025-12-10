@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"github.com/tim-contact/go-crm/internal/models"
+	"github.com/tim-contact/go-crm/internal/handlers"
 )
 
 func Router(r *gin.Engine, db *gorm.DB) *gin.Engine {
@@ -21,6 +22,8 @@ func Router(r *gin.Engine, db *gorm.DB) *gin.Engine {
 	authg.POST("/register", Authn(), RequireRole("admin"), register(db))
 	}
 
+	noteHandler := handlers.NewLeadNoteHandler(db)
+
 
 
 	lead := r.Group("/leads", Authn())
@@ -30,6 +33,12 @@ func Router(r *gin.Engine, db *gorm.DB) *gin.Engine {
 		lead.GET(":id", RequireRole("admin", "coordinator", "agent", "viewer"), getLead(db))
 		lead.PUT(":id", RequireRole("admin", "coordinator", "agent"), updateLead(db))
 		lead.DELETE(":id", RequireRole("admin", "coordinator"), deleteLead(db))
+
+		// Lead Notes
+		lead.POST(":id/notes", RequireRole("admin", "coordinator", "agent"), noteHandler.CreateLeadNote)
+		lead.GET(":id/notes", RequireRole("admin", "coordinator", "agent", "viewer"), noteHandler.GetLeadNotes)
+		lead.PUT(":id/notes/:note_id", RequireRole("admin", "coordinator", "agent"), noteHandler.UpdateLeadNote)
+		lead.DELETE(":id/notes/:note_id", RequireRole("admin", "coordinator"), noteHandler.DeleteLeadNote)
 	}
 	return r
 }
