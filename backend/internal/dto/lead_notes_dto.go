@@ -4,7 +4,6 @@ import "time"
 
 
 type CreateLeadNote struct {
-	LeadID	string     `json:"lead_id" binding:"required,uuid"`
 	Body    string     `json:"body" binding:"required,min=2"`
 }
 
@@ -23,6 +22,6 @@ type UpdateLeadNote struct {
 type LeadNoteListResponse struct {
 	Notes      []LeadNoteResponse `json:"notes"`
 	TotalCount int                `json:"total_count"`
-	page	   int                `json:"page"`	
+	Page	   int                `json:"page"`	
 	Limit	   int                `json:"limit"`
 }
