@@ -1,4 +1,5 @@
 import LeadsList from "./pages/Leads/LeadsList";
+import LeadInfo from "./pages/Leads/LeadInfo";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import LoginPage from "./pages/auth/LoginPage";
 import RequireAuth from "./auth/RequireAuth";
@@ -21,6 +22,7 @@ function App() {
                 <LeadsList />
             }
           />
+          <Route path="/leads/:id" element={<LeadInfo />} />
         </Route>
 
 
@@ -28,6 +30,7 @@ function App() {
         <Route element={<RequireAdmin />}>
             <Route path="/admin/users/new" element={<RegisterUserPage />} />
         </Route>
+
 
       </Routes>
     </BrowserRouter>

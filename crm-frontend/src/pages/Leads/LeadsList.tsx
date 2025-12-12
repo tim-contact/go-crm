@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { type Lead, listLeads, createLead, type LeadCreate, deleteLead, updateLead } from "@/api/leads";
 import { Search, Plus, Edit2, Trash2, Filter } from "lucide-react";
@@ -7,6 +8,8 @@ import { Badge, Button, CardDescription, CardTitle } from "@/components/UI";
 import LeadForm from "./LeadForm";
 
 export default function LeadsList() {
+
+  const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showNewLeadModal, setShowNewLeadModal] = useState(false);
@@ -295,6 +298,7 @@ export default function LeadsList() {
             },
           ]}
           data={filteredData}
+          onRowClick={(lead) => navigate(`/leads/${lead.id}`)}
           isLoading={isLoading}
           emptyMessage="No leads found for the current search."
           getRowId={(row) => row.id}
