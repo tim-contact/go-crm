@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { type Lead, listLeads, createLead, type LeadCreate, deleteLead, updateLead } from "@/api/leads";
+import { useQuery } from "@tanstack/react-query";
+import { type Lead, listLeads } from "@/api/leads";
 import { Search, Plus, Edit2, Trash2, Filter } from "lucide-react";
 import { DataTable, DataTableToolbar } from "@/components/Datatable";
 import { Badge, Button, CardDescription, CardTitle } from "@/components/UI";
-import LeadForm from "./LeadForm";
+import { useLeadActions } from "@/hooks/useLeadActions";
+import { LeadEditModal } from "@/components/Form/LeadModal";
 
 export default function LeadsList() {
 
@@ -14,7 +15,6 @@ export default function LeadsList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showNewLeadModal, setShowNewLeadModal] = useState(false);
   const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const [editing, setEditing] = useState<Lead | null>(null);
   
 
@@ -34,57 +34,7 @@ export default function LeadsList() {
     );
   }, [data, searchTerm]);
 
-  const queryClient = useQueryClient();
-
-  const handleSubmit = async (values: LeadCreate) => {
-
-    // validate whatsapp number format
-    const whatsapp = values.whatsapp_no?.trim();
-    if (whatsapp && !/^\d{10}$/.test(whatsapp)) {
-      setError("Invalid WhatsApp number format."); return;
-    }
-
-    // normalize data
-    let inquiry_date: string | undefined;
-    if (values.inquiry_date) {
-      const d = new Date(values.inquiry_date);
-      if (isNaN(d.getTime())) {
-        setError("Inquiry date is invalid.");
-        return;
-      }
-      inquiry_date = d.toISOString();
-    }
-    if (!values.full_name.trim() || !values.destination_country?.trim() || !values.branch?.trim()) {
-      setError("Name, destination country and branch are required.");
-      return;
-    }
-
-    setError("");
-
-    const payload: LeadCreate = {
-      ...values,
-      branch: values.branch.trim(),
-      status: values.status || "New",
-      whatsapp_no: whatsapp,
-      inquiry_date,
-    }
-    if (!payload) return;
-    setError("");
-    setSubmitting(true);
-    try {
-      if (editing) {
-        await updateMutation.mutateAsync({id: editing.id, body: payload});
-      } else {
-        await createLead(payload);
-      }
-      queryClient.invalidateQueries({ queryKey: ["leads"]});
-      setShowNewLeadModal(false);
-      closeModal();
-    } finally {
-      setSubmitting(false);
-    }
-
-  }
+  const { handleDeleteLead, deleteMutation, isDeletingLead } = useLeadActions();
 
   const renderStatusBadge = (status?: string) => {
     switch (status) {
@@ -98,21 +48,6 @@ export default function LeadsList() {
         return <Badge variant="neutral">{status || "Unknown"}</Badge>;
     }
   };
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteLead(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["leads"]});
-    }
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: ({id, body}: {id: string, body: Partial<LeadCreate>}) => 
-      updateLead(id, body),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["leads"]});
-    }
-  });
 
   const openEdit = (lead: Lead) => {
     setError("");
@@ -271,7 +206,9 @@ export default function LeadsList() {
                     variant="ghost"
                     size="sm"
                     leftIcon={<Edit2 className="h-4 w-4" />}
-                    onClick={() => openEdit(lead)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEdit(lead)}}
                   >
                     Edit
                   </Button>
@@ -281,17 +218,18 @@ export default function LeadsList() {
                     className="text-red-600 hover:bg-red-50"
                     leftIcon={<Trash2 className="h-4 w-4" />}
 
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (!confirm(`Delete ${lead.full_name}?`)) return;
                       if (deleteMutation.isError) {
                         setError(`{deleteMutation.error as string}`);
                         return
                       }
-                      deleteMutation.mutate(lead.id);
+                      handleDeleteLead(lead.id);
                     }}
-                    disabled={deleteMutation.isPending}
+                    disabled={isDeletingLead}
                   >
-                    {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                    {isDeletingLead ? "Deleting..." : "Delete"}
                   </Button>
                 </div>
               ),
@@ -318,31 +256,19 @@ export default function LeadsList() {
                 <Button variant="secondary" leftIcon={<Filter className="h-4 w-4" />}>
                   Filter
                 </Button>
-                <Button leftIcon={<Plus className="h-5 w-5" />} onClick={() => setShowNewLeadModal(true)}>New Lead</Button>
+                <Button leftIcon={<Plus className="h-5 w-5" />} onClick={() => {setEditing(null);setShowNewLeadModal(true);}}>New Lead</Button>
 
-                {showNewLeadModal && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-                  <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">New Lead</h3>
-                    <button className="text-gray-500 hover:text-gray-700" onClick={() => closeModal()}>X</button>
-                  </div>
-
-                  {error && (
+                {error && (
                     <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
                       {error}
-                    </div>
-                  )}
-                  <LeadForm 
-                    initial={editing ? {...editing, branch: editing.branch_name} : undefined}
-                    onSubmit={handleSubmit}
-                    onCancel={() => closeModal()}
-                    submitting={submitting || updateMutation.isPending}
-                    />
-                  </div>
-                  </div>
-                  
-                  
+                    </div>)}
+
+                {showNewLeadModal && (
+                  <LeadEditModal 
+                    lead={editing}
+                    isOpen={showNewLeadModal}
+                    onClose={closeModal}
+                  />
                 )}
               </div>
             </DataTableToolbar>

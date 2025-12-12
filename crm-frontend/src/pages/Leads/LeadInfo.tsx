@@ -6,6 +6,8 @@ import { type LeadNote, type LeadNoteCreate, listLeadNotes, createLeadNote, upda
 import { type Lead, getLead} from '@/api/leads';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import {Badge} from '@/components/UI';
+import { useLeadActions } from "@/hooks/useLeadActions";
+import { LeadEditModal } from '@/components/Form/LeadModal';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -18,9 +20,10 @@ const LeadDetailPage = () => {
 
     const [newNoteContent, setNewNoteContent] = useState('');
     const [error, setError] = useState<string|null>(null);
-
     const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
     const [editingNoteContent, setEditingNoteContent] = useState<string>('');
+    const { handleDeleteLead} = useLeadActions();
+    const [showEditModal, setShowEditModal] = useState(false);
 
     const { data: leadData, isLoading: isLoadingLead } = useQuery<Lead>({
         queryKey: ['lead', leadId],
@@ -162,8 +165,8 @@ const LeadDetailPage = () => {
                     }
                     extra={
                       <Space>
-                      <Button type="primary"> Edit Lead</Button>
-                      <Button danger>Delete</Button>
+                      <Button type="primary" onClick={() => setShowEditModal(true)}> Edit Lead</Button>
+                      <Button danger onClick={() => handleDeleteLead(leadData?.id)}>Delete</Button>
                       </Space>  
                     } 
                     >
@@ -260,7 +263,14 @@ const LeadDetailPage = () => {
                                 </Space>
                             </Tabs.TabPane>
                         </Tabs>
-                    </Card>
+                    </Card> 
+                    {leadData && (
+                                    <LeadEditModal
+                                        lead={leadData}
+                                        isOpen={showEditModal}
+                                        onClose={() => setShowEditModal(false)}
+                                    />
+                                  )}
                 </div>
             )}
         </div>
