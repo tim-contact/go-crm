@@ -2,7 +2,7 @@ import {useState} from 'react';
 import { useParams } from 'react-router-dom';
 import { Tabs, Card, Descriptions, Input, Button,  Space, Spin, message, Flex, Typography } from 'antd';
 import { UserOutlined, PhoneOutlined, PlusOutlined,  ArrowLeftOutlined } from '@ant-design/icons';
-import { type LeadNote, type LeadNoteCreate, listLeadNotes, getLeadNote, createLeadNote, updateLeadNote, deleteLeadNote, type LeadNoteUpdate} from '@/api/leadnotes';
+import { type LeadNote, type LeadNoteCreate, listLeadNotes, createLeadNote, updateLeadNote, deleteLeadNote, type LeadNoteUpdate} from '@/api/leadnotes';
 import { type Lead, getLead} from '@/api/leads';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import {Badge} from '@/components/UI';
