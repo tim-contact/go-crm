@@ -39,6 +39,10 @@ export const listLeads = (params: any) => {
     return api.get<Lead[]>("/leads", { params }).then(r => r.data);
 }
 
+export const getLead = (id: string) => {
+    return api.get<Lead>(`/leads/${id}`).then(r => r.data);
+}
+
 export const createLead = (body: LeadCreate) => {
     return api.post("/leads", body).then(r => r.data);
 }
