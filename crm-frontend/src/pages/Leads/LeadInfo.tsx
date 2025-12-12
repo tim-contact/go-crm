@@ -8,7 +8,6 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import {Badge} from '@/components/UI';
 import { useLeadActions } from "@/hooks/useLeadActions";
 import { LeadEditModal } from '@/components/Form/LeadModal';
-
 const { TextArea } = Input;
 const { Text } = Typography;
 
@@ -24,6 +23,7 @@ const LeadDetailPage = () => {
     const [editingNoteContent, setEditingNoteContent] = useState<string>('');
     const { handleDeleteLead} = useLeadActions();
     const [showEditModal, setShowEditModal] = useState(false);
+
 
     const { data: leadData, isLoading: isLoadingLead } = useQuery<Lead>({
         queryKey: ['lead', leadId],
@@ -167,6 +167,7 @@ const LeadDetailPage = () => {
                       <Space>
                       <Button type="primary" onClick={() => setShowEditModal(true)}> Edit Lead</Button>
                       <Button danger onClick={() => handleDeleteLead(leadData?.id)}>Delete</Button>
+
                       </Space>  
                     } 
                     >
@@ -271,6 +272,7 @@ const LeadDetailPage = () => {
                                         onClose={() => setShowEditModal(false)}
                                     />
                                   )}
+
                 </div>
             )}
         </div>
