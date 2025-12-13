@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { type LeadCreate, type Lead, createLead, updateLead } from "@/api/leads";
+import { useState } from "react";
+import { type LeadCreate, type Lead, createLead } from "@/api/leads";
 import LeadForm from "@/pages/Leads/LeadForm";
 import { useLeadActions } from "@/hooks/useLeadActions";
 import { useQueryClient } from "@tanstack/react-query";
