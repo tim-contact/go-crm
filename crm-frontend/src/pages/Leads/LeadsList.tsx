@@ -1,23 +1,48 @@
 import { useMemo, useState } from "react";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { type Lead, listLeads, createLead, type LeadCreate, deleteLead, updateLead } from "@/api/leads";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { type Lead, fetchLeads, type LeadFilter } from "@/api/leads";
 import { Search, Plus, Edit2, Trash2, Filter } from "lucide-react";
 import { DataTable, DataTableToolbar } from "@/components/Datatable";
 import { Badge, Button, CardDescription, CardTitle } from "@/components/UI";
-import LeadForm from "./LeadForm";
+import { useLeadActions } from "@/hooks/useLeadActions";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { LeadEditModal } from "@/components/Form/LeadModal";
+import { COUNTRIES } from "@/constants/countries";
+import { Select, DatePicker, Space } from "antd";
+import { CloseSquareTwoTone } from "@ant-design/icons";
+import { Dayjs } from "dayjs";
+
+const { RangePicker } = DatePicker;
+
+const statusOptions = [
+  { label: "New", value: "New" },
+  { label: "In Progress", value: "In Progress" },
+  { label: "Closed", value: "Closed" },
+]
 
 export default function LeadsList() {
+
+  const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showNewLeadModal, setShowNewLeadModal] = useState(false);
   const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const [editing, setEditing] = useState<Lead | null>(null);
+  const [filters, setFilters] = useState<LeadFilter>({});
+  const [showFilter, setShowFilter] = useState(false);
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
+
+
+  const effectiveFilters: LeadFilter = {
+    ...filters,
+    q: useDebouncedValue(searchTerm, 500) || undefined,
+  }
   
 
   const { data, isLoading } = useQuery<Lead[]>({
-    queryKey: ["leads"],
-    queryFn: () => listLeads({ limit: 50 })
+    queryKey: ["leads", effectiveFilters],
+    queryFn: () => fetchLeads(effectiveFilters), 
   });
 
   const filteredData = useMemo(() => {
@@ -31,57 +56,45 @@ export default function LeadsList() {
     );
   }, [data, searchTerm]);
 
-  const queryClient = useQueryClient();
 
-  const handleSubmit = async (values: LeadCreate) => {
-
-    // validate whatsapp number format
-    const whatsapp = values.whatsapp_no?.trim();
-    if (whatsapp && !/^\d{10}$/.test(whatsapp)) {
-      setError("Invalid WhatsApp number format."); return;
-    }
-
-    // normalize data
-    let inquiry_date: string | undefined;
-    if (values.inquiry_date) {
-      const d = new Date(values.inquiry_date);
-      if (isNaN(d.getTime())) {
-        setError("Inquiry date is invalid.");
-        return;
-      }
-      inquiry_date = d.toISOString();
-    }
-    if (!values.full_name.trim() || !values.destination_country?.trim() || !values.branch?.trim()) {
-      setError("Name, destination country and branch are required.");
-      return;
-    }
-
-    setError("");
-
-    const payload: LeadCreate = {
-      ...values,
-      branch: values.branch.trim(),
-      status: values.status || "New",
-      whatsapp_no: whatsapp,
-      inquiry_date,
-    }
-    if (!payload) return;
-    setError("");
-    setSubmitting(true);
-    try {
-      if (editing) {
-        await updateMutation.mutateAsync({id: editing.id, body: payload});
-      } else {
-        await createLead(payload);
-      }
-      queryClient.invalidateQueries({ queryKey: ["leads"]});
-      setShowNewLeadModal(false);
-      closeModal();
-    } finally {
-      setSubmitting(false);
-    }
-
+  const handleStatusFilterChange = (value: string) => {
+    setFilters((prev) => ({...prev, status: value || undefined, offset: 0}))
+  }  
+  const handleCountryFilterChange = (value: string) => {
+    setFilters((prev) => ({...prev, country: value || undefined, offset: 0}))
   }
+  /* 
+  const handleAllocatedFilterChange = (value: string) => {
+    setFilters((prev) => ({...prev, allocatedTo: value || undefined, offset: 0}))
+  }*/
+
+  const handleDateFilterChange = (values: [Dayjs | null, Dayjs | null] | null) => {
+    setDateRange(values);
+    if(values && values[0] && values[1]) {
+      setFilters((prev) => ({
+        ...prev,
+        from: values[0]?.format("YYYY-MM-DD"),
+        to: values[1]?.format("YYYY-MM-DD"),
+        offset: 0,
+      }));
+    } else {
+      setFilters((prev) => ({
+        ...prev,
+        from: undefined,
+        to: undefined,
+        offset: 0,
+      }))
+    }
+  }
+
+  const handleResetFilters = () => {
+    setFilters({limit: 50, offset: 0});
+    setSearchTerm("");
+    setDateRange(null);
+    setShowFilter(false);
+  }
+
+  const { handleDeleteLead, deleteMutation, isDeletingLead } = useLeadActions();
 
   const renderStatusBadge = (status?: string) => {
     switch (status) {
@@ -95,21 +108,6 @@ export default function LeadsList() {
         return <Badge variant="neutral">{status || "Unknown"}</Badge>;
     }
   };
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteLead(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["leads"]});
-    }
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: ({id, body}: {id: string, body: Partial<LeadCreate>}) => 
-      updateLead(id, body),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["leads"]});
-    }
-  });
 
   const openEdit = (lead: Lead) => {
     setError("");
@@ -254,7 +252,7 @@ export default function LeadsList() {
               header: "Inquiry Date",
               render: (lead) => (
                 <div className="text-sm text-gray-600">
-                  {lead.inquiry_date ? new Date(lead.inquiry_date).toLocaleDateString() : "—"}
+                  {lead.inquiry_date ? new Date(lead.inquiry_date).toLocaleDateString("en-IN") : "—"}
                 </div>
               ),
             },
@@ -268,7 +266,9 @@ export default function LeadsList() {
                     variant="ghost"
                     size="sm"
                     leftIcon={<Edit2 className="h-4 w-4" />}
-                    onClick={() => openEdit(lead)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEdit(lead)}}
                   >
                     Edit
                   </Button>
@@ -278,23 +278,25 @@ export default function LeadsList() {
                     className="text-red-600 hover:bg-red-50"
                     leftIcon={<Trash2 className="h-4 w-4" />}
 
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (!confirm(`Delete ${lead.full_name}?`)) return;
                       if (deleteMutation.isError) {
                         setError(`{deleteMutation.error as string}`);
                         return
                       }
-                      deleteMutation.mutate(lead.id);
+                      handleDeleteLead(lead.id);
                     }}
-                    disabled={deleteMutation.isPending}
+                    disabled={isDeletingLead}
                   >
-                    {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                    {isDeletingLead ? "Deleting..." : "Delete"}
                   </Button>
                 </div>
               ),
             },
           ]}
           data={filteredData}
+          onRowClick={(lead) => navigate(`/leads/${lead.id}`)}
           isLoading={isLoading}
           emptyMessage="No leads found for the current search."
           getRowId={(row) => row.id}
@@ -311,34 +313,63 @@ export default function LeadsList() {
                 />
               </div>
               <div className="flex items-center gap-3">
-                <Button variant="secondary" leftIcon={<Filter className="h-4 w-4" />}>
-                  Filter
+                {!showFilter && (
+                <>
+                <Button variant="secondary" leftIcon={<Filter className="h-4 w-4" />} onClick={() => {setShowFilter(true)}}>
+                  Filters
                 </Button>
-                <Button leftIcon={<Plus className="h-5 w-5" />} onClick={() => setShowNewLeadModal(true)}>New Lead</Button>
+                <Button leftIcon={<Plus className="h-5 w-5" />} onClick={() => {setEditing(null);setShowNewLeadModal(true);}}>New Lead</Button>
+                </>
+              )}
+                {showFilter && (
+                  <div className="flex flex-col gap-3 bg-white p-4 rounded-lg shadow mt-2">
+                  <div className="flex items-center gap-3 bg-white p-4 rounded-lg shadow">
+                    <button 
+                      type="button"
+                      onClick={() => setShowFilter(false)}><CloseSquareTwoTone /></button>
+                    </div>
+                  <Space wrap>
+                    <Select
+                      placeholder="Status"
+                      allowClear
+                      options={statusOptions}
+                      value={filters.status || undefined}
+                      onChange={handleStatusFilterChange}
+                      style={{ width: 150 }}
+                    />                    
+                    <Select
+                      showSearch
+                      placeholder="Country"
+                      allowClear
+                      options={COUNTRIES.map(c => ({ label: c.name, value: c.name }))}
+                      value={filters.country || undefined}
+                      onChange={handleCountryFilterChange}
+                      style={{ width: 150 }}
+                    />
 
-                {showNewLeadModal && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-                  <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">New Lead</h3>
-                    <button className="text-gray-500 hover:text-gray-700" onClick={() => closeModal()}>X</button>
+                    <RangePicker
+                      value={dateRange || undefined}
+                      onChange={vals => handleDateFilterChange(vals)}
+                      allowClear
+                    />
+                    <Button color="default" variant="secondary" onClick={handleResetFilters}>Reset</Button>
+                  </Space>
                   </div>
+                )}
 
-                  {error && (
+                
+
+                {error && (
                     <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
                       {error}
-                    </div>
-                  )}
-                  <LeadForm 
-                    initial={editing ? {...editing, branch: editing.branch_name} : undefined}
-                    onSubmit={handleSubmit}
-                    onCancel={() => closeModal()}
-                    submitting={submitting || updateMutation.isPending}
-                    />
-                  </div>
-                  </div>
-                  
-                  
+                    </div>)}
+
+                {showNewLeadModal && (
+                  <LeadEditModal 
+                    lead={editing}
+                    isOpen={showNewLeadModal}
+                    onClose={closeModal}
+                  />
                 )}
               </div>
             </DataTableToolbar>

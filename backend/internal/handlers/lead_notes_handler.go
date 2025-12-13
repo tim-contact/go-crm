@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -18,17 +19,19 @@ func NewLeadNoteHandler(db *gorm.DB) *LeadNoteHandler {
 
 func (h *LeadNoteHandler) CreateLeadNote(c *gin.Context) {
 	userID, _ := c.Get("uid")
+	leadID := c.Param("id")
 	
 
 	var req dto.CreateLeadNote
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		fmt.Printf("Error binding JSON: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	note := models.LeadNote{
-		LeadID:    req.LeadID,
+		LeadID:    leadID,
 		Body:      req.Body,
 		CreatedBy: userID.(string),
 	}
@@ -46,7 +49,7 @@ func (h *LeadNoteHandler) GetLeadNotes(c *gin.Context) {
 
 	var notes []models.LeadNote
 
-	if err := h.db.Where ("id = ?", leadID).Order("created_at DESC").Find(&notes).Error; err != nil {
+	if err := h.db.Where ("lead_id = ?", leadID).Order("created_at DESC").Find(&notes).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

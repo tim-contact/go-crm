@@ -28,6 +28,7 @@ export type DataTableProps<T extends Record<string, unknown>> = {
   toolbar?: React.ReactNode;
   footer?: React.ReactNode;
   getRowId?: (row: T, index: number) => string | number;
+  onRowClick?: (row: T) => void;
 };
 
 const alignClassNames = {
@@ -46,6 +47,7 @@ export function DataTable<T extends Record<string, unknown>>({
   toolbar,
   footer,
   getRowId,
+  onRowClick
 }: DataTableProps<T>) {
   const renderCell = (row: T, column: DataTableColumn<T>) => {
     if (column.render) return column.render(row);
@@ -122,7 +124,11 @@ export function DataTable<T extends Record<string, unknown>>({
                   return (
                     <tr
                       key={rowKey}
-                      className="hover:bg-gray-50 transition-colors"
+                      onClick={() => onRowClick?.(row)}
+                      className={cn(
+                        "hover:bg-gray-50 cursor-pointer",
+                        onRowClick && "transition-colors duration-200 cursor-pointer"
+                      )}
                     >
                       {columns.map((column) => (
                         <td
