@@ -35,6 +35,17 @@ export type LeadCreate = {
     whatsapp_no: string;
 }
 
+export type LeadFilter = {
+    status?: string;
+    country?: string;
+    allocatedTo?: string;
+    q?: string;
+    from?: string;
+    to?: string;
+    limit?: number;
+    offset?: number;
+}
+
 export const listLeads = (params: any) => {
     return api.get<Lead[]>("/leads", { params }).then(r => r.data);
 }
@@ -53,4 +64,20 @@ export const updateLead = (id: string, body: Partial<LeadCreate>) => {
 
 export const deleteLead = (id: string) => {
    return api.delete(`/leads/${id}`).then(r => r.data);
+}
+
+export const fetchLeads = async (filters: LeadFilter) => {
+    const params = new URLSearchParams();
+
+    if (filters.status) params.append("status", filters.status);
+    if (filters.country) params.append("country", filters.country);
+    if (filters.allocatedTo) params.append("allocated_to", filters.allocatedTo);
+    if (filters.q) params.append("q", filters.q);
+    if (filters.from) params.append("from", filters.from);
+    if (filters.to) params.append("to", filters.to);
+    params.set("limit", filters.limit?.toString() || "50");
+    params.set("offset", filters.offset?.toString() || "0");
+
+    const res = await api.get<Lead[]>(`/leads?${params.toString()}`);
+    return res.data;
 }

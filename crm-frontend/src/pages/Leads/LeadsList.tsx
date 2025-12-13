@@ -1,12 +1,25 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { type Lead, listLeads } from "@/api/leads";
+import { type Lead, fetchLeads, type LeadFilter } from "@/api/leads";
 import { Search, Plus, Edit2, Trash2, Filter } from "lucide-react";
 import { DataTable, DataTableToolbar } from "@/components/Datatable";
 import { Badge, Button, CardDescription, CardTitle } from "@/components/UI";
 import { useLeadActions } from "@/hooks/useLeadActions";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { LeadEditModal } from "@/components/Form/LeadModal";
+import { COUNTRIES } from "@/constants/countries";
+import { Select, DatePicker, Space } from "antd";
+import { CloseSquareTwoTone } from "@ant-design/icons";
+import { Dayjs } from "dayjs";
+
+const { RangePicker } = DatePicker;
+
+const statusOptions = [
+  { label: "New", value: "New" },
+  { label: "In Progress", value: "In Progress" },
+  { label: "Closed", value: "Closed" },
+]
 
 export default function LeadsList() {
 
@@ -16,11 +29,20 @@ export default function LeadsList() {
   const [showNewLeadModal, setShowNewLeadModal] = useState(false);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<Lead | null>(null);
+  const [filters, setFilters] = useState<LeadFilter>({});
+  const [showFilter, setShowFilter] = useState(false);
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
+
+
+  const effectiveFilters: LeadFilter = {
+    ...filters,
+    q: useDebouncedValue(searchTerm, 500) || undefined,
+  }
   
 
   const { data, isLoading } = useQuery<Lead[]>({
-    queryKey: ["leads"],
-    queryFn: () => listLeads({ limit: 50 })
+    queryKey: ["leads", effectiveFilters],
+    queryFn: () => fetchLeads(effectiveFilters), 
   });
 
   const filteredData = useMemo(() => {
@@ -33,6 +55,44 @@ export default function LeadsList() {
         .some((value) => String(value).toLowerCase().includes(term))
     );
   }, [data, searchTerm]);
+
+
+  const handleStatusFilterChange = (value: string) => {
+    setFilters((prev) => ({...prev, status: value || undefined, offset: 0}))
+  }  
+  const handleCountryFilterChange = (value: string) => {
+    setFilters((prev) => ({...prev, country: value || undefined, offset: 0}))
+  }
+  /* 
+  const handleAllocatedFilterChange = (value: string) => {
+    setFilters((prev) => ({...prev, allocatedTo: value || undefined, offset: 0}))
+  }*/
+
+  const handleDateFilterChange = (values: [Dayjs | null, Dayjs | null] | null) => {
+    setDateRange(values);
+    if(values && values[0] && values[1]) {
+      setFilters((prev) => ({
+        ...prev,
+        from: values[0]?.format("YYYY-MM-DD"),
+        to: values[1]?.format("YYYY-MM-DD"),
+        offset: 0,
+      }));
+    } else {
+      setFilters((prev) => ({
+        ...prev,
+        from: undefined,
+        to: undefined,
+        offset: 0,
+      }))
+    }
+  }
+
+  const handleResetFilters = () => {
+    setFilters({limit: 50, offset: 0});
+    setSearchTerm("");
+    setDateRange(null);
+    setShowFilter(false);
+  }
 
   const { handleDeleteLead, deleteMutation, isDeletingLead } = useLeadActions();
 
@@ -192,7 +252,7 @@ export default function LeadsList() {
               header: "Inquiry Date",
               render: (lead) => (
                 <div className="text-sm text-gray-600">
-                  {lead.inquiry_date ? new Date(lead.inquiry_date).toLocaleDateString() : "—"}
+                  {lead.inquiry_date ? new Date(lead.inquiry_date).toLocaleDateString("en-IN") : "—"}
                 </div>
               ),
             },
@@ -253,10 +313,51 @@ export default function LeadsList() {
                 />
               </div>
               <div className="flex items-center gap-3">
-                <Button variant="secondary" leftIcon={<Filter className="h-4 w-4" />}>
-                  Filter
+                {!showFilter && (
+                <>
+                <Button variant="secondary" leftIcon={<Filter className="h-4 w-4" />} onClick={() => {setShowFilter(true)}}>
+                  Filters
                 </Button>
                 <Button leftIcon={<Plus className="h-5 w-5" />} onClick={() => {setEditing(null);setShowNewLeadModal(true);}}>New Lead</Button>
+                </>
+              )}
+                {showFilter && (
+                  <div className="flex flex-col gap-3 bg-white p-4 rounded-lg shadow mt-2">
+                  <div className="flex items-center gap-3 bg-white p-4 rounded-lg shadow">
+                    <button 
+                      type="button"
+                      onClick={() => setShowFilter(false)}><CloseSquareTwoTone /></button>
+                    </div>
+                  <Space wrap>
+                    <Select
+                      placeholder="Status"
+                      allowClear
+                      options={statusOptions}
+                      value={filters.status || undefined}
+                      onChange={handleStatusFilterChange}
+                      style={{ width: 150 }}
+                    />                    
+                    <Select
+                      showSearch
+                      placeholder="Country"
+                      allowClear
+                      options={COUNTRIES.map(c => ({ label: c.name, value: c.name }))}
+                      value={filters.country || undefined}
+                      onChange={handleCountryFilterChange}
+                      style={{ width: 150 }}
+                    />
+
+                    <RangePicker
+                      value={dateRange || undefined}
+                      onChange={vals => handleDateFilterChange(vals)}
+                      allowClear
+                    />
+                    <Button color="default" variant="secondary" onClick={handleResetFilters}>Reset</Button>
+                  </Space>
+                  </div>
+                )}
+
+                
 
                 {error && (
                     <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
