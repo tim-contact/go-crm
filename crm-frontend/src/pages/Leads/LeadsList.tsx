@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { type Lead, listLeads, fetchLeads, type LeadFilter } from "@/api/leads";
+import { type Lead, fetchLeads, type LeadFilter } from "@/api/leads";
 import { Search, Plus, Edit2, Trash2, Filter } from "lucide-react";
 import { DataTable, DataTableToolbar } from "@/components/Datatable";
 import { Badge, Button, CardDescription, CardTitle } from "@/components/UI";
@@ -9,9 +9,9 @@ import { useLeadActions } from "@/hooks/useLeadActions";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { LeadEditModal } from "@/components/Form/LeadModal";
 import { COUNTRIES } from "@/constants/countries";
-import { Input, Select, DatePicker, Space } from "antd";
+import { Select, DatePicker, Space } from "antd";
 import { CloseSquareTwoTone } from "@ant-design/icons";
-import dayjs, { Dayjs } from "dayjs";
+import { Dayjs } from "dayjs";
 
 const { RangePicker } = DatePicker;
 
@@ -62,10 +62,11 @@ export default function LeadsList() {
   }  
   const handleCountryFilterChange = (value: string) => {
     setFilters((prev) => ({...prev, country: value || undefined, offset: 0}))
-  } 
+  }
+  /* 
   const handleAllocatedFilterChange = (value: string) => {
     setFilters((prev) => ({...prev, allocatedTo: value || undefined, offset: 0}))
-  }
+  }*/
 
   const handleDateFilterChange = (values: [Dayjs | null, Dayjs | null] | null) => {
     setDateRange(values);
