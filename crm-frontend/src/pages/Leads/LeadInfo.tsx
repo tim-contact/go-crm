@@ -8,6 +8,8 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import {Badge} from '@/components/UI';
 import { useLeadActions } from "@/hooks/useLeadActions";
 import { LeadEditModal } from '@/components/Form/LeadModal';
+import  LeadActivitiesTab  from '@/components/Lead/LeadActivitiesTab';
+
 const { TextArea } = Input;
 const { Text } = Typography;
 
@@ -262,6 +264,10 @@ const LeadDetailPage = () => {
                                         ))}
                                     </Flex>
                                 </Space>
+                            </Tabs.TabPane>
+
+                            <Tabs.TabPane tab="Activities" key="3">
+                                <LeadActivitiesTab />
                             </Tabs.TabPane>
                         </Tabs>
                     </Card> 
