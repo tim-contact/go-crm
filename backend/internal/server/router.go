@@ -23,7 +23,7 @@ func Router(r *gin.Engine, db *gorm.DB) *gin.Engine {
 	}
 
 	noteHandler := handlers.NewLeadNoteHandler(db)
-
+	activityHandler := handlers.NewActivityHandler(db)
 
 
 	lead := r.Group("/leads", Authn())
@@ -39,6 +39,11 @@ func Router(r *gin.Engine, db *gorm.DB) *gin.Engine {
 		lead.GET(":id/notes", RequireRole("admin", "coordinator", "agent", "viewer"), noteHandler.GetLeadNotes)
 		lead.PUT(":id/notes/:note_id", RequireRole("admin", "coordinator", "agent"), noteHandler.UpdateLeadNote)
 		lead.DELETE(":id/notes/:note_id", RequireRole("admin", "coordinator"), noteHandler.DeleteLeadNote)
+
+		lead.POST(":id/activities", RequireRole("admin", "coordinator", "agent"), activityHandler.CreateActivity)
+		lead.GET(":id/activities", RequireRole("admin", "coordinator", "agent", "viewer"), activityHandler.GetActivities)
+		lead.PUT(":id/activities/:activity_id", RequireRole("admin", "coordinator", "agent"), activityHandler.UpdateActivity)
+		lead.DELETE(":id/activities/:activity_id", RequireRole("admin", "coordinator"), activityHandler.DeleteActivity)
 	}
 	return r
 }
