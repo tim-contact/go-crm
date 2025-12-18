@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS activities (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     lead_id     UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
     staff_id    UUID REFERENCES users(id),
-    kind        TEXT NOT NULL CHECK (kind IN ('call','email','meeting','whatsapp','note')),
+    kind        TEXT NOT NULL CHECK (kind IN ('call','follow_up_call', 'email','meeting','whatsapp','note')),
     summary     TEXT,
     occurred_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
