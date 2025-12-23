@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { type LeadCreate } from "@/api/leads";
 import { Form, Input, InputNumber, DatePicker, Select, Button } from "antd"
-import { CloseOutlined } from "@ant-design/icons/lib/icons";
 import dayjs from "dayjs";
 
 type props = {
