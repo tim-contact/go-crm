@@ -309,7 +309,10 @@ export default function LeadsList() {
                 <input
                   type="text"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value)
+                    setFilters((prev) => ({...prev, offset: 0}))
+                  }}
                   placeholder="Search Name, WhatsApp, Inquiry Id"
                   className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
