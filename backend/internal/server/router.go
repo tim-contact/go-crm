@@ -152,14 +152,28 @@ func listLeads(db *gorm.DB) gin.HandlerFunc {
 		if f.Limit <= 0 || f.Limit > 200 { f.Limit = 50 }
 		if f.Offset < 0 { f.Offset = 0 }
 
+		var total int64 
+		fmt.Println("Executing count query for leads")
+		if err := q.Count(&total).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()}); return	
+		}
+		fmt.Printf("Total leads matching filters: %d\n", total)
+
 		var out []leadWithBranchResp
 
-		if err := q.Order("created_at DESC").Limit(f.Limit).Offset(f.Offset).Scan(&out).Error; err != nil {
+		if err := q.Order("leads.created_at DESC, leads.id DESC").Limit(f.Limit).Offset(f.Offset).Scan(&out).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()}); return
 		}
 
-		
-		c.JSON(http.StatusOK, out)
+		fmt.Printf("Total leads: %d, Returned: %d\n", total, len(out))
+		response := gin.H{
+			"leads": out,
+			"total": total,
+			"limit": f.Limit,
+			"offset": f.Offset,
+		}
+
+		c.JSON(http.StatusOK, response)
 	}
 }
 
