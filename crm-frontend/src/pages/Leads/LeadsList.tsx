@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { type Lead, fetchLeads, type LeadFilter } from "@/api/leads";
@@ -33,10 +33,12 @@ export default function LeadsList() {
   const [showFilter, setShowFilter] = useState(false);
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
 
+  const debouncedSearch = useDebouncedValue(searchTerm, 500);
+
 
   const effectiveFilters: LeadFilter = {
     ...filters,
-    q: useDebouncedValue(searchTerm, 500) || undefined,
+    q: debouncedSearch?.trim() || undefined,
   }
   
 
@@ -45,16 +47,7 @@ export default function LeadsList() {
     queryFn: () => fetchLeads(effectiveFilters), 
   });
 
-  const filteredData = useMemo(() => {
-    if (!data) return [];
-    if (!searchTerm.trim()) return data;
-    const term = searchTerm.toLowerCase();
-    return data.filter((lead) =>
-      [lead.inq_id, lead.full_name, lead.destination_country, lead.branch_name, lead.status]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(term))
-    );
-  }, [data, searchTerm]);
+  const filteredData = data || [];
 
 
   const handleStatusFilterChange = (value: string) => {
@@ -308,7 +301,7 @@ export default function LeadsList() {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search name, country, branch..."
+                  placeholder="Search Name, WhatsApp, Inquiry Id"
                   className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
