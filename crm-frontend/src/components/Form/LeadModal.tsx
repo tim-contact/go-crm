@@ -3,6 +3,8 @@ import { type LeadCreate, type Lead, createLead } from "@/api/leads";
 import LeadForm from "@/pages/Leads/LeadForm";
 import { useLeadActions } from "@/hooks/useLeadActions";
 import { useQueryClient } from "@tanstack/react-query";
+import { CloseOutlined } from "@ant-design/icons/lib/icons";
+import { Button } from "antd";
 
 type LeadEditModalProps = {
     lead: Lead | null;
@@ -81,9 +83,13 @@ export const LeadEditModal = ({lead, isOpen, onClose}: LeadEditModalProps) => {
     return(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
                   <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">{isEditMode ? "Edit Lead" : "Add Lead"}</h3>
-                    <button className="text-gray-500 hover:text-gray-700" onClick={handleClose}>X</button>
+                    <div className="flex items-center justify-between mb-4 p-4 border-b">
+                    <h2 className="text-lg font-semibold">{isEditMode ? "Edit Lead" : "Add Lead"}</h2>
+                    <Button 
+                      type="text"
+                      icon={<CloseOutlined />}
+                      onClick={handleClose}
+                    />
                   </div>
 
                   {error && (
