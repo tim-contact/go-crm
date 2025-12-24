@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { type Lead, fetchLeads, type LeadFilter } from "@/api/leads";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { type Lead, type LeadsListResponse, fetchLeads, type LeadFilter } from "@/api/leads";
 import { Search, Plus, Edit2, Trash2, Filter } from "lucide-react";
 import { DataTable, DataTableToolbar } from "@/components/Datatable";
 import { Badge, Button, CardDescription, CardTitle } from "@/components/UI";
@@ -9,7 +9,7 @@ import { useLeadActions } from "@/hooks/useLeadActions";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { LeadEditModal } from "@/components/Form/LeadModal";
 import { COUNTRIES } from "@/constants/countries";
-import { Select, DatePicker, Space } from "antd";
+import { Select, DatePicker, Space, Pagination } from "antd";
 import { CloseSquareTwoTone } from "@ant-design/icons";
 import { Dayjs } from "dayjs";
 
@@ -29,26 +29,38 @@ export default function LeadsList() {
   const [showNewLeadModal, setShowNewLeadModal] = useState(false);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<Lead | null>(null);
-  const [filters, setFilters] = useState<LeadFilter>({});
+  const [filters, setFilters] = useState<LeadFilter>({
+    limit: 50,
+    offset: 0,
+  });
   const [showFilter, setShowFilter] = useState(false);
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
 
   const debouncedSearch = useDebouncedValue(searchTerm, 500);
 
+  const page = Math.floor((filters.offset || 0) / (filters.limit || 50)) + 1;
+  const pageSize = filters.limit || 50;
+
 
   const effectiveFilters: LeadFilter = {
     ...filters,
     q: debouncedSearch?.trim() || undefined,
+    limit: pageSize,
+    offset: (page - 1) * pageSize,
   }
   
 
-  const { data, isLoading } = useQuery<Lead[]>({
+  const { data, isLoading } = useQuery<LeadsListResponse>({
     queryKey: ["leads", effectiveFilters],
     queryFn: () => fetchLeads(effectiveFilters), 
+    placeholderData: keepPreviousData
   });
 
-  const filteredData = data || [];
+  const filteredData = data?.leads || [];
 
+  const totalItems = data?.total || 0;
+  const start = totalItems === 0 ? 0: (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, totalItems)
 
   const handleStatusFilterChange = (value: string) => {
     setFilters((prev) => ({...prev, status: value || undefined, offset: 0}))
@@ -56,10 +68,7 @@ export default function LeadsList() {
   const handleCountryFilterChange = (value: string) => {
     setFilters((prev) => ({...prev, country: value || undefined, offset: 0}))
   }
-  /* 
-  const handleAllocatedFilterChange = (value: string) => {
-    setFilters((prev) => ({...prev, allocatedTo: value || undefined, offset: 0}))
-  }*/
+
 
   const handleDateFilterChange = (values: [Dayjs | null, Dayjs | null] | null) => {
     setDateRange(values);
@@ -372,21 +381,30 @@ export default function LeadsList() {
               <div>
                 Showing{" "}
                 <span className="font-medium text-gray-900">
-                  1-{filteredData.length || 0}
+                  {start}-{end}
                 </span>{" "}
                 of{" "}
                 <span className="font-medium text-gray-900">
-                  {filteredData.length || 0}
+                  {totalItems}
                 </span>{" "}
                 leads
               </div>
               <div className="flex gap-2">
-                <Button variant="secondary" size="sm" disabled>
-                  Previous
-                </Button>
-                <Button variant="secondary" size="sm" disabled>
-                  Next
-                </Button>
+                <Pagination
+                  current={page}
+                  pageSize={pageSize}
+                  total={totalItems}
+                  showSizeChanger
+                  onChange={(nextPage, nextPageSize) => {
+                    const newOffset = (nextPage - 1) * nextPageSize; 
+                    setFilters((prev) => ({
+                      ...prev,
+                      limit: nextPageSize,
+                      offset: newOffset,
+                    }))
+                  }}
+                />
+                
               </div>
             </div>
           }

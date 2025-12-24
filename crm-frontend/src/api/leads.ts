@@ -18,6 +18,13 @@ export type Lead = {
     branch_name: string
 };
 
+export type LeadsListResponse = {
+    leads: Lead[];
+    total: number;
+    limit: number;
+    offset: number;
+}
+
 export type LeadCreate = {
     inq_id: string;
     full_name: string;
@@ -38,7 +45,7 @@ export type LeadCreate = {
 export type LeadFilter = {
     status?: string;
     country?: string;
-    allocatedTo?: string;
+    allocated_user_id?: string;
     q?: string;
     from?: string;
     to?: string;
@@ -47,7 +54,7 @@ export type LeadFilter = {
 }
 
 export const listLeads = (params: any) => {
-    return api.get<Lead[]>("/leads", { params }).then(r => r.data);
+    return api.get<LeadsListResponse>("/leads", { params }).then(r => r.data);
 }
 
 export const getLead = (id: string) => {
@@ -71,13 +78,13 @@ export const fetchLeads = async (filters: LeadFilter) => {
 
     if (filters.status) params.append("status", filters.status);
     if (filters.country) params.append("country", filters.country);
-    if (filters.allocatedTo) params.append("allocated_to", filters.allocatedTo);
+    if (filters.allocated_user_id) params.append("allocated_to", filters.allocated_user_id);
     if (filters.q) params.append("q", filters.q);
     if (filters.from) params.append("from", filters.from);
     if (filters.to) params.append("to", filters.to);
     params.set("limit", filters.limit?.toString() || "50");
     params.set("offset", filters.offset?.toString() || "0");
 
-    const res = await api.get<Lead[]>(`/leads?${params.toString()}`);
+    const res = await api.get<LeadsListResponse>(`/leads?${params.toString()}`);
     return res.data;
 }
