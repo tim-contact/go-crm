@@ -9,6 +9,7 @@ import {Badge} from '@/components/UI';
 import { useLeadActions } from "@/hooks/useLeadActions";
 import { LeadEditModal } from '@/components/Form/LeadModal';
 import  LeadActivitiesTab  from '@/components/Lead/LeadActivitiesTab';
+import  LeadTasksTab  from '@/components/Lead/LeadTasksTab';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -268,6 +269,9 @@ const LeadDetailPage = () => {
 
                             <Tabs.TabPane tab="Activities" key="3">
                                 <LeadActivitiesTab />
+                            </Tabs.TabPane>
+                            <Tabs.TabPane tab="Tasks" key="4">
+                                <LeadTasksTab />
                             </Tabs.TabPane>
                         </Tabs>
                     </Card> 
