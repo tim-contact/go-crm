@@ -37,7 +37,7 @@ func login(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		token, err := auth.NewAccessToken(u.ID, u.Role, 15*time.Minute)
+		token, err := auth.NewAccessToken(u.ID, u.Role, 60*time.Minute)
 		if err != nil {
 			c.JSON(500, gin.H{"error": "failed to generate token"});
 			return
