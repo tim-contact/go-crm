@@ -24,6 +24,7 @@ func Router(r *gin.Engine, db *gorm.DB) *gin.Engine {
 
 	noteHandler := handlers.NewLeadNoteHandler(db)
 	activityHandler := handlers.NewActivityHandler(db)
+	taskHandler := handlers.NewTaskHandler(db)
 
 
 	lead := r.Group("/leads", Authn())
@@ -44,6 +45,11 @@ func Router(r *gin.Engine, db *gorm.DB) *gin.Engine {
 		lead.GET(":id/activities", RequireRole("admin", "coordinator", "agent", "viewer"), activityHandler.GetActivities)
 		lead.PUT(":id/activities/:activity_id", RequireRole("admin", "coordinator", "agent"), activityHandler.UpdateActivity)
 		lead.DELETE(":id/activities/:activity_id", RequireRole("admin", "coordinator"), activityHandler.DeleteActivity)
+
+		lead.POST(":id/tasks", RequireRole("admin", "coordinator", "agent"), taskHandler.CreateTask)
+		lead.GET(":id/tasks", RequireRole("admin", "coordinator", "agent", "viewer"), taskHandler.GetTasks)
+		lead.PUT(":id/tasks/:task_id", RequireRole("admin", "coordinator", "agent"), taskHandler.UpdateTask)
+		lead.DELETE(":id/tasks/:task_id", RequireRole("admin", "coordinator"), taskHandler.DeleteTask)
 	}
 	return r
 }
