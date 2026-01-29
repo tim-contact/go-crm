@@ -1,7 +1,7 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { Form, Input, Button, Typography, Alert, Space } from "antd";
-import { UserOutlined, LockOutlined, LoginOutlined } from "@ant-design/icons";
+import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { login } from "@/api/auth";
 import "@/styles/glass.css"; // Import the glass CSS
 

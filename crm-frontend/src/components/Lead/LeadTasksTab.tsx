@@ -7,7 +7,6 @@ import {
     Button, 
     Tag, 
     Dropdown,
-    theme
 } from 'antd';
 import { PlusOutlined, MoreOutlined } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
@@ -20,7 +19,6 @@ const { Text } = Typography;
 
 const LeadTasksTab = () => {
     const { id: leadId } = useParams<{ id: string }>();
-    const { token } = theme.useToken();
     const queryClient = useQueryClient();
     
     const [isModalOpen, setIsModalOpen] = useState(false);
