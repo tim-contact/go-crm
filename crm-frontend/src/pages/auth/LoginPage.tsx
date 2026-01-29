@@ -14,6 +14,7 @@ const LoginPage = () => {
     
     const token = localStorage.getItem("token");
     
+    
     if (token) {
         return <Navigate to="/" replace />;
     }
@@ -25,6 +26,7 @@ const LoginPage = () => {
             await login(values.email, values.password);
             navigate("/", { replace: true });
         } catch (err: any) {
+            // basic error handling 
             if (err?.response?.status === 401) {
                 setError("Invalid email or password");
             } else {
