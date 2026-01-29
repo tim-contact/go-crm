@@ -16,6 +16,7 @@ type Task struct {
 	LeadID        string      `gorm:"type:uuid;not null;index" json:"lead_id"`
 	Title         string      `gorm:"column:title;type:text;not null" json:"title"`
 	DueDate       *time.Time  `gorm:"column:due_date" json:"due_date,omitempty"`
+	Kind          ActivityKind `gorm:"column:kind;type:text;not null;default:'note'" json:"kind"`
 	Status        TaskStatus  `gorm:"column:status;type:text;not null;default:'open'" json:"status"`
 	AssignedTo    *string     `gorm:"column:assigned_to" json:"assigned_to,omitempty"`
 	CreatedAt     time.Time   `gorm:"column:created_at;not null;default:now()" json:"created_at"`
