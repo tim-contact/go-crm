@@ -26,6 +26,8 @@ func Router(r *gin.Engine, db *gorm.DB) *gin.Engine {
 	activityHandler := handlers.NewActivityHandler(db)
 	taskHandler := handlers.NewTaskHandler(db)
 
+	r.GET("/tasks/today", Authn(), RequireRole("admin", "coordinator", "agent"), taskHandler.GetTodayTasks)
+	r.GET("/users", Authn(), RequireRole("admin", "coordinator", "agent"), listUsers(db))
 
 	lead := r.Group("/leads", Authn())
 	{
@@ -74,6 +76,28 @@ type leadCreateReq struct {
 	GroupName		  *string     `json:"group_name"`
 	Remarks			  *string     `json:"remarks"`
 
+}
+
+type userListItem struct {
+	ID     string  `json:"id"`
+	Name   string  `json:"name"`
+	Role   string  `json:"role"`
+	Active bool    `json:"active"`
+}
+
+func listUsers(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var out []userListItem
+		q := db.Table("users").
+			Select("id, name, role, active").
+			Where("active = TRUE").
+			Order("name ASC")
+		if err := q.Scan(&out).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"users": out, "total": len(out)})
+	}
 }
 
 func createLead(db *gorm.DB) gin.HandlerFunc {
@@ -129,6 +153,7 @@ type leadFilters struct {
 type leadWithBranchResp struct {
 	models.Lead
 	BranchName string `json:"branch_name"`
+	AllocatedUserName string `json:"allocated_user_name"`
 }
 
 func listLeads(db *gorm.DB) gin.HandlerFunc {
@@ -140,8 +165,9 @@ func listLeads(db *gorm.DB) gin.HandlerFunc {
 		}		
 
 		q := db.Table("leads").
-			Select("leads.*, COALESCE(branches.name, '') AS branch_name").
-			Joins("LEFT JOIN branches ON branches.id = leads.branch_id")
+			Select("leads.*, COALESCE(branches.name, '') AS branch_name, COALESCE(u.name, '') AS allocated_user_name").
+			Joins("LEFT JOIN branches ON branches.id = leads.branch_id").
+			Joins("LEFT JOIN users u ON u.id = leads.allocated_user_id")
 
 		if f.Country != "" {
 			q = q.Where("destination_country ILIKE ?", "%"+f.Country+"%")
@@ -188,8 +214,9 @@ func getLead(db *gorm.DB) gin.HandlerFunc {
 		id := c.Param("id")
 		var out leadWithBranchResp
 		err := db.Table("leads").
-			Select("leads.*, COALESCE(branches.name, '') AS branch_name").
+			Select("leads.*, COALESCE(branches.name, '') AS branch_name, COALESCE(u.name, '') AS allocated_user_name").
 			Joins("LEFT JOIN branches on branches.id = leads.branch_id").
+			Joins("LEFT JOIN users u ON u.id = leads.allocated_user_id").
 			Where("leads.id = ?", id).
 			Scan(&out).Error
 

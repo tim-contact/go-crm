@@ -41,7 +41,7 @@ clean:
 
 # === Local run (no Docker), loads .env ===
 run-local:
-	cd backend && env $$(grep -v '^#' .env | xargs) go run ./cmd/api
+	cd backend && export env $(grep -v '^#' .env | xargs) && go run ./cmd/api
 
 
 env/print:

@@ -5,6 +5,9 @@ import LoginPage from "./pages/auth/LoginPage";
 import RequireAuth from "./auth/RequireAuth";
 import RequireAdmin from "./auth/RequireAdmin";
 import RegisterUserPage from "./pages/Users/RegisterUser";
+import TodayTasksPage from "./pages/Tasks/TodayTasks";
+import Dashboard from "./pages/Dashboard";
+import AppLayout from "./layouts/AppLayout";
 
 function App() {
   return (
@@ -16,13 +19,12 @@ function App() {
 
         {/* Protected routes */}
         <Route element={<RequireAuth />}>
-          <Route
-            path="/"
-            element={
-                <LeadsList />
-            }
-          />
-          <Route path="/leads/:id" element={<LeadInfo />} />
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/leads" element={<LeadsList />} />
+            <Route path="/leads/:id" element={<LeadInfo />} />
+            <Route path="/tasks/today" element={<TodayTasksPage />} />
+          </Route>
         </Route>
 
 

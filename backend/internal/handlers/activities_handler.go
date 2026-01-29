@@ -39,7 +39,19 @@ func (h *ActivityHandler) CreateActivity(c *gin.Context) {
 		Summary:  req.Summary,
 	}
 
-	if err := h.db.Create(&activity).Error; err != nil {
+	if err := h.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&activity).Error; err != nil {
+			return err
+		}
+		if activity.Kind != models.ActivityNote {
+			if err := tx.Model(&models.Lead{}).
+				Where("id = ? AND status = ?", leadID, "New").
+				Update("status", "In Progress").Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

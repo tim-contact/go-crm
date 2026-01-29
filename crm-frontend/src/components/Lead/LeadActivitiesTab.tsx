@@ -157,34 +157,38 @@ const LeadActivitiesTab = () => {
 
     return (
         <div className="w-full">
-            <Space vertical className="w-full" size="large">
+            <Space orientation="vertical" className="w-full" size="large">
 
                 <Card size="small" title="Log Activity">
                     { error && <Text type="danger">{error}</Text> }
-                <Space className="w-full">
-                <Select value={newActivityContent.kind}
-                 onChange={(kind) => 
-                    setNewActivityContent(
-                        prev => ({...prev, kind})
-                    )
-                } 
-                options={activityKindOptions}
-                style={{ width: 200 }}
-                />
+                    <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+                        <Select
+                            value={newActivityContent.kind}
+                            onChange={(kind) =>
+                                setNewActivityContent(
+                                    prev => ({...prev, kind})
+                                )
+                            }
+                            options={activityKindOptions}
+                            className="w-full sm:w-48"
+                        />
 
-                <Input 
-                    value={newActivityContent.summary ?? ""}
-                    onChange={(e) => setNewActivityContent((p) => ({...p, summary: e.target.value}))}
-                    placeholder="Write a summary (eg. Called client regarding documents...)"
-                /> 
-                <Button 
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={handleAddActivity}
-                    loading={createActivityMutation.isPending}>
-                        Add
-                    </Button>
-                </Space>
+                        <Input
+                            value={newActivityContent.summary ?? ""}
+                            onChange={(e) => setNewActivityContent((p) => ({...p, summary: e.target.value}))}
+                            placeholder="Write a summary (eg. Called client regarding documents...)"
+                            className="flex-1"
+                        />
+                        <Button
+                            type="primary"
+                            icon={<PlusOutlined />}
+                            onClick={handleAddActivity}
+                            loading={createActivityMutation.isPending}
+                            className="w-full sm:w-auto"
+                        >
+                            Add
+                        </Button>
+                    </div>
                 </Card>
 
                 <Card size="small" title={`Timeline (${activitiesData.total_count})`}>
