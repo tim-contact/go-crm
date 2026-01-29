@@ -4,7 +4,7 @@ import LeadForm from "@/pages/Leads/LeadForm";
 import { useLeadActions } from "@/hooks/useLeadActions";
 import { useQueryClient } from "@tanstack/react-query";
 import { CloseOutlined } from "@ant-design/icons";
-import { Button, Modal, Alert, Typography } from "antd";
+import { Modal, Alert, Typography } from "antd";
 
 const { Title } = Typography;
 
