@@ -148,7 +148,7 @@ const LeadDetailPage = () => {
     }
 
     return(
-        <div className='w-full min-h bg-gray-50 p-6'>
+        <div className='w-full min-h p-6'>
             {!isLoading && (
                 <div className='max-w-7xl mx-auto'>
                     <Button
@@ -159,24 +159,28 @@ const LeadDetailPage = () => {
                         Back to Leads
                     </Button>
 
-                    <Card className='m-4 p-4' 
-                    title={
-                        <div className='flex items-center gap-4'>
-                            <h2 className='text-2xl font-bold m-0'>{leadData?.full_name}</h2>
-                            {renderStatusBadge(leadData?.status)}
-                        </div>
-                    }
-                    extra={
-                      <Space>
-                      <Button type="primary" onClick={() => setShowEditModal(true)}> Edit Lead</Button>
-                      <Button danger onClick={() => handleDeleteLead(leadData?.id)}>Delete</Button>
-
-                      </Space>  
-                    } 
+                    <Card
+                        className='m-4 p-4'
+                        title={
+                            <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                                <div className='flex items-center gap-4'>
+                                    <h2 className='text-2xl font-bold m-0'>{leadData?.full_name}</h2>
+                                    {renderStatusBadge(leadData?.status)}
+                                </div>
+                                <Space wrap>
+                                    <Button type="primary" onClick={() => setShowEditModal(true)}> Edit Lead</Button>
+                                    <Button danger onClick={() => handleDeleteLead(leadData?.id)}>Delete</Button>
+                                </Space>
+                            </div>
+                        }
                     >
                         <Tabs defaultActiveKey="1" size='large'>
                             <Tabs.TabPane tab="Lead Information" key="1">
-                                <Descriptions bordered column={2}>
+                                <Descriptions
+                                    bordered
+                                    size="small"
+                                    column={{ xs: 1, sm: 1, md: 2, lg: 2, xl: 2, xxl: 2 }}
+                                >
                                     <Descriptions.Item label={<><UserOutlined/>Inquire ID</>}>{leadData?.inq_id}</Descriptions.Item>
                                     <Descriptions.Item label={<><UserOutlined/> Name</>}>{leadData?.full_name}</Descriptions.Item>
                                     <Descriptions.Item label="Country">{leadData?.destination_country}</Descriptions.Item>
@@ -185,12 +189,18 @@ const LeadDetailPage = () => {
                                     <Descriptions.Item label="Visa Category">{leadData?.visa_category}</Descriptions.Item>
                                     <Descriptions.Item label="Principal">{leadData?.principal}</Descriptions.Item>
                                     <Descriptions.Item label="GPA">{leadData?.gpa}</Descriptions.Item>
-                                    <Descriptions.Item label="Allocated User">{leadData?.allocated_user_id}</Descriptions.Item>
+                                    <Descriptions.Item label="Allocated User">
+                                        {leadData?.allocated_user_name || leadData?.allocated_user_id || "-"}
+                                    </Descriptions.Item>
                                     <Descriptions.Item label="Team">{leadData?.team}</Descriptions.Item>
                                     <Descriptions.Item label={<><PhoneOutlined/>Whatsapp Number</>}>{leadData?.whatsapp_no}</Descriptions.Item>
                                     <Descriptions.Item label="Branch">{leadData?.branch_name}</Descriptions.Item>
-                                    <Descriptions.Item label="Inquiry Date">{leadData?.inquiry_date}</Descriptions.Item>
-                                    
+                                    <Descriptions.Item label="Inquiry Date">
+                                        {leadData?.inquiry_date
+                                            ? new Date(leadData.inquiry_date).toISOString().slice(0, 10)
+                                            : "-"}
+                                    </Descriptions.Item>
+ 
                                 </Descriptions>
                             </Tabs.TabPane>
                             <Tabs.TabPane tab="Notes" key="2">

@@ -1,5 +1,6 @@
 import { Modal, Form, Input, Select, DatePicker } from "antd";
 import { type LeadTaskCreate, TaskStatus } from "@/api/leadtasks";
+import { type ActivityKind } from "@/api/leadactivities";
 import dayjs, {type Dayjs} from "dayjs";
 import { useEffect } from "react";
 
@@ -14,6 +15,7 @@ type TaskFormValues = {
   title: string;
   due_date: Dayjs | null;
   status: TaskStatus;
+  kind: ActivityKind;
   assigned_to: string;
 };
 
@@ -39,6 +41,7 @@ export const TaskCreateModal = ({
             title: initial?.title || "",
             due_date: getCurrentTime(),
             status: initial?.status || TaskStatus.OPEN,
+            kind: initial?.kind || "note",
             assigned_to: initial?.assigned_to || '',
         });
     }, [initial, form]);
@@ -75,6 +78,7 @@ export const TaskCreateModal = ({
           title: "follow up call",
           status: TaskStatus.OPEN,
           due_date: getCurrentTime(),
+          kind: "follow_up_call",
 
         }}
       >
@@ -93,6 +97,19 @@ export const TaskCreateModal = ({
               { label: "In Progress", value: TaskStatus.IN_PROGRESS },
               { label: "Done", value: TaskStatus.DONE },
               { label: "Cancelled", value: TaskStatus.CANCELLED },
+            ]}
+          />
+        </Form.Item>
+
+        <Form.Item name="kind" label="Task Kind" rules={[{ required: true, message: "Task kind is required" }]}>
+          <Select
+            options={[
+              { label: "Call", value: "call" },
+              { label: "Follow Up Call", value: "follow_up_call" },
+              { label: "Email", value: "email" },
+              { label: "Meeting", value: "meeting" },
+              { label: "WhatsApp", value: "whatsapp" },
+              { label: "Note", value: "note" },
             ]}
           />
         </Form.Item>

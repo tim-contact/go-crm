@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { type LeadCreate } from "@/api/leads";
+import { listUsers, type UserListItem } from "@/api/users";
 import { Form, Input, InputNumber, DatePicker, Select, Button } from "antd"
 import dayjs from "dayjs";
+import { useQuery } from "@tanstack/react-query";
 
 type props = {
 
@@ -15,6 +17,14 @@ type props = {
 export default function LeadForm({ initial, onSubmit, onCancel, submitting }: props) {
 
     const [form] = Form.useForm();
+    const { data: usersData } = useQuery<{ users: UserListItem[] }>({
+        queryKey: ["users"],
+        queryFn: () => listUsers(),
+    });
+    const userOptions = (usersData?.users || []).map(u => ({
+        label: u.name,
+        value: u.id,
+    }));
 
     const getCurrentTime = () => {
         if (initial?.inquiry_date) {
@@ -103,8 +113,15 @@ export default function LeadForm({ initial, onSubmit, onCancel, submitting }: pr
             <InputNumber min={0} max={4} step={0.01} />
         </Form.Item>
 
-        <Form.Item label="Allocated User ID" name="allocated_user_id">
-            <Input />
+        <Form.Item label="Allocated User" name="allocated_user_id">
+            <Select
+                placeholder="Select a user"
+                options={userOptions}
+                showSearch={{
+                    filterOption: (input, option) => (option?.label ?? "").toLowerCase().includes(input.toLowerCase()),
+                }}
+                allowClear
+            />
         </Form.Item>
 
         <Form.Item label="Team" name="team">

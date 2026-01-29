@@ -12,6 +12,7 @@ export type Lead = {
     principal? : string;
     gpa?: number;
     allocated_user_id: string;
+    allocated_user_name?: string;
     team?: string;
     whatsapp_no: string
     inquiry_date?: string;

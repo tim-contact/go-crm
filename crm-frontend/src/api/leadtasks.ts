@@ -1,4 +1,5 @@
 import {api} from "./client";
+import { type ActivityKind } from "./leadactivities";
 
 export const TaskStatus = { 
     OPEN: 'open',
@@ -14,8 +15,10 @@ export type LeadTask = {
     lead_id: string;
     title: string;
     due_date?: string | null;
+    kind: ActivityKind;
     status: TaskStatus;
     assigned_to?: string | null;
+    assigned_to_name?: string | null;
     created_at: string;
 }
 
@@ -27,6 +30,7 @@ export type LeadTaskList = {
 export type LeadTaskCreate = {
      title: string;
      due_date?: string | null;
+     kind: ActivityKind;
      status: TaskStatus;
      assigned_to?: string | null;
 }
@@ -34,6 +38,7 @@ export type LeadTaskCreate = {
 export type LeadTaskUpdate = {
     title?: string;
     due_date?: string | null;
+    kind?: ActivityKind;
     status?: TaskStatus;
     assigned_to?: string | null;
 }
