@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import { useParams } from 'react-router-dom';
-import { Tabs, Card, Descriptions, Input, Button,  Space, Spin, message, Flex, Typography } from 'antd';
-import { UserOutlined, PhoneOutlined, PlusOutlined,  ArrowLeftOutlined } from '@ant-design/icons';
+import { Tabs, Card, Descriptions, Input, Button, Space, Spin, message, Flex, Typography } from 'antd';
+import { UserOutlined, PhoneOutlined, PlusOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { type LeadNote, type LeadNoteCreate, listLeadNotes, createLeadNote, updateLeadNote, deleteLeadNote, type LeadNoteUpdate} from '@/api/leadnotes';
 import { type Lead, getLead} from '@/api/leads';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
@@ -133,166 +133,223 @@ const LeadDetailPage = () => {
 
     if (isLoading) {
         return (
-                <div className='flex items-center justify-center min-h-screen'>
-                    <Spin size="large" />
-                </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+                <Spin size="large" />
+            </div>
         )
     }
 
     if (!leadData) {
         return (
-            <div className='flex items-center justify-center min-h-screen'>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
                 <Card><p>Lead Not Found</p></Card>
             </div>
         );
     }
 
     return(
-        <div className='w-full min-h p-6'>
+        <div style={{ width: '100%', minHeight: '100vh', padding: '16px' }}>
             {!isLoading && (
-                <div className='max-w-7xl mx-auto'>
+                <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
                     <Button
-                    icon={<ArrowLeftOutlined/>}
-                    onClick={() => window.history.back()}
-                    className='mb-4'
+                        icon={<ArrowLeftOutlined/>}
+                        onClick={() => window.history.back()}
+                        style={{ marginBottom: '16px' }}
                     >
                         Back to Leads
                     </Button>
 
-                    <Card
-                        className='m-4 p-4'
-                        title={
-                            <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-                                <div className='flex items-center gap-4'>
-                                    <h2 className='text-2xl font-bold m-0'>{leadData?.full_name}</h2>
-                                    {renderStatusBadge(leadData?.status)}
-                                </div>
-                                <Space wrap>
-                                    <Button type="primary" onClick={() => setShowEditModal(true)}> Edit Lead</Button>
-                                    <Button danger onClick={() => handleDeleteLead(leadData?.id)}>Delete</Button>
-                                </Space>
-                            </div>
-                        }
-                    >
-                        <Tabs defaultActiveKey="1" size='large'>
-                            <Tabs.TabPane tab="Lead Information" key="1">
-                                <Descriptions
-                                    bordered
-                                    size="small"
-                                    column={{ xs: 1, sm: 1, md: 2, lg: 2, xl: 2, xxl: 2 }}
-                                >
-                                    <Descriptions.Item label={<><UserOutlined/>Inquire ID</>}>{leadData?.inq_id}</Descriptions.Item>
-                                    <Descriptions.Item label={<><UserOutlined/> Name</>}>{leadData?.full_name}</Descriptions.Item>
-                                    <Descriptions.Item label="Country">{leadData?.destination_country}</Descriptions.Item>
-                                    <Descriptions.Item label="Field of Study">{leadData?.field_of_study}</Descriptions.Item>
-                                    <Descriptions.Item label="Age">{leadData?.age}</Descriptions.Item>
-                                    <Descriptions.Item label="Visa Category">{leadData?.visa_category}</Descriptions.Item>
-                                    <Descriptions.Item label="Principal">{leadData?.principal}</Descriptions.Item>
-                                    <Descriptions.Item label="GPA">{leadData?.gpa}</Descriptions.Item>
-                                    <Descriptions.Item label="Allocated User">
-                                        {leadData?.allocated_user_name || leadData?.allocated_user_id || "-"}
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="Team">{leadData?.team}</Descriptions.Item>
-                                    <Descriptions.Item label={<><PhoneOutlined/>Whatsapp Number</>}>{leadData?.whatsapp_no}</Descriptions.Item>
-                                    <Descriptions.Item label="Branch">{leadData?.branch_name}</Descriptions.Item>
-                                    <Descriptions.Item label="Inquiry Date">
-                                        {leadData?.inquiry_date
-                                            ? new Date(leadData.inquiry_date).toISOString().slice(0, 10)
-                                            : "-"}
-                                    </Descriptions.Item>
- 
-                                </Descriptions>
-                            </Tabs.TabPane>
-                            <Tabs.TabPane tab="Notes" key="2">
-                                <Space orientation='vertical' className='w-full' size="large">
-                                    <Card size="small" title="Add New Note">
-                                        {error && <Text type="danger" className='mb-2 block'>{error}</Text>}
-                                        <Space.Compact className='w-full'>
-                                            <TextArea
-                                                value={newNoteContent}
-                                                onChange={(e) => setNewNoteContent(e.target.value)}
-                                                placeholder='Write a note here...'
-                                                autoSize={{ minRows: 2, maxRows: 4 }}
-                                                maxLength={100}
-                                                style={{ width: 'calc(100% - 100px)' }}
-                                            />
-                                            <Button
-                                                type="primary"
-                                                icon={<PlusOutlined />}
-                                                onClick={handleAddNote}
-                                                loading={createNoteMutation.isPending}
-                                                style={{ height: 'auto'}}
-                                            > Add </Button>
-                                        </Space.Compact>
-                                    </Card>
-
-                                    <Flex 
-                                        vertical gap="small"
-                                    >
-                                        {notes.length === 0 && (
-                                            <Card size="small">
-                                                <Text type="secondary">No notes yet. Add the first note above</Text>
+                   <Card
+    title={
+        <div style={{ paddingBottom: '16px' }}>
+            <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
+                <Space wrap align="center" size="middle">
+                    <Text strong style={{ fontSize: '20px', margin: 0 }}>
+                        {leadData?.full_name}
+                    </Text>
+                    {renderStatusBadge(leadData?.status)}
+                </Space>
+                <Space wrap style={{ width: '100%' }}>
+                    <Button type="primary" onClick={() => setShowEditModal(true)}>
+                        Edit Lead
+                    </Button>
+                    <Button danger onClick={() => handleDeleteLead(leadData?.id)}>
+                        Delete
+                    </Button>
+                </Space>
+            </Space>
+        </div>
+    }
+    style={{ marginBottom: '16px' }}
+> 
+                        <Tabs 
+                            defaultActiveKey="1" 
+                            size="large"
+                            items={[
+                                {
+                                    key: "1",
+                                    label: "Information",
+                                    children: (
+                                        <Descriptions
+                                            bordered
+                                            size="small"
+                                            column={{ xs: 1, sm: 1, md: 2, lg: 2, xl: 2, xxl: 2 }}
+                                            labelStyle={{ fontWeight: 500 }}
+                                        >
+                                            <Descriptions.Item label={<><UserOutlined /> Inquire ID</>}>
+                                                {leadData?.inq_id}
+                                            </Descriptions.Item>
+                                            <Descriptions.Item label={<><UserOutlined /> Name</>}>
+                                                {leadData?.full_name}
+                                            </Descriptions.Item>
+                                            <Descriptions.Item label="Country">
+                                                {leadData?.destination_country}
+                                            </Descriptions.Item>
+                                            <Descriptions.Item label="Field of Study">
+                                                {leadData?.field_of_study}
+                                            </Descriptions.Item>
+                                            <Descriptions.Item label="Age">
+                                                {leadData?.age}
+                                            </Descriptions.Item>
+                                            <Descriptions.Item label="Visa Category">
+                                                {leadData?.visa_category}
+                                            </Descriptions.Item>
+                                            <Descriptions.Item label="Principal">
+                                                {leadData?.principal}
+                                            </Descriptions.Item>
+                                            <Descriptions.Item label="GPA">
+                                                {leadData?.gpa}
+                                            </Descriptions.Item>
+                                            <Descriptions.Item label="Allocated User">
+                                                {leadData?.allocated_user_name || leadData?.allocated_user_id || "-"}
+                                            </Descriptions.Item>
+                                            <Descriptions.Item label="Team">
+                                                {leadData?.team}
+                                            </Descriptions.Item>
+                                            <Descriptions.Item label={<><PhoneOutlined /> WhatsApp</>}>
+                                                {leadData?.whatsapp_no}
+                                            </Descriptions.Item>
+                                            <Descriptions.Item label="Branch">
+                                                {leadData?.branch_name}
+                                            </Descriptions.Item>
+                                            <Descriptions.Item label="Inquiry Date">
+                                                {leadData?.inquiry_date
+                                                    ? new Date(leadData.inquiry_date).toISOString().slice(0, 10)
+                                                    : "-"}
+                                            </Descriptions.Item>
+                                        </Descriptions>
+                                    )
+                                },
+                                {
+                                    key: "2",
+                                    label: "Notes",
+                                    children: (
+                                        <Space orientation="vertical" style={{ width: '100%' }} size="large">
+                                            <Card size="small" title="Add New Note">
+                                                {error && <Text type="danger" style={{ marginBottom: '8px', display: 'block' }}>{error}</Text>}
+                                                <Space orientation="vertical" style={{ width: '100%' }}>
+                                                    <TextArea
+                                                        value={newNoteContent}
+                                                        onChange={(e) => setNewNoteContent(e.target.value)}
+                                                        placeholder='Write a note here...'
+                                                        autoSize={{ minRows: 2, maxRows: 4 }}
+                                                        maxLength={500}
+                                                    />
+                                                    <Button
+                                                        type="primary"
+                                                        icon={<PlusOutlined />}
+                                                        onClick={handleAddNote}
+                                                        loading={createNoteMutation.isPending}
+                                                        block
+                                                    >
+                                                        Add Note
+                                                    </Button>
+                                                </Space>
                                             </Card>
-                                        )}
-                                        {notes.map((note) => (
-                                            <Card key={note.id} size="small">
-                                                {editingNoteId === note.id && (
-                                                    <Space orientation='vertical' className='w-full'>
-                                                        <TextArea 
-                                                            value={editingNoteContent}
-                                                            onChange={(e) => setEditingNoteContent(e.target.value)}
-                                                            autoSize={{ minRows: 2, maxRows: 4 }}
-                                                        />
-                                                        <Space>
-                                                            <Button
-                                                                type='primary'
-                                                                size='small'
-                                                                onClick = {() => handleSaveEditNote(note.id)}
-                                                                loading={updateNoteMutation.isPending}
-                                                            > Save </Button>
-                                                            <Button 
-                                                                size='small'
-                                                                onClick={handleCancelEditNote}
-                                                            > Cancel </Button>
-                                                        </Space>
-                                                    </Space>
+
+                                            <Flex vertical gap="small">
+                                                {notes.length === 0 && (
+                                                    <Card size="small">
+                                                        <Text type="secondary">No notes yet. Add the first note above</Text>
+                                                    </Card>
                                                 )}
-                                                <Text className='block mb-2'>
-                                                    {note.body}
-                                                </Text>
-                                                <Text type="secondary" className='text-sm'>
-                                                    {new Date(note.created_at).toLocaleString()} created by {note.created_by}
-                                                </Text>
-                                                <div style={{ textAlign: 'right', marginTop: '8px' }}>
-                                                    <Space size="small">
-                                                        <Button color='primary' variant='outlined' onClick={() => handleStartEditNote(note)}>Edit</Button>
-                                                        <Button danger
-                                                            onClick={handleDeleteNote.bind(null, note.id)}
-                                                        >delete</Button>
-                                                    </Space>
-                                                </div>
-                                            </Card>
-                                        ))}
-                                    </Flex>
-                                </Space>
-                            </Tabs.TabPane>
-
-                            <Tabs.TabPane tab="Activities" key="3">
-                                <LeadActivitiesTab />
-                            </Tabs.TabPane>
-                            <Tabs.TabPane tab="Tasks" key="4">
-                                <LeadTasksTab />
-                            </Tabs.TabPane>
-                        </Tabs>
+                                                {notes.map((note) => (
+                                                    <Card key={note.id} size="small">
+                                                        {editingNoteId === note.id ? (
+                                                            <Space orientation="vertical" style={{ width: '100%' }}>
+                                                                <TextArea 
+                                                                    value={editingNoteContent}
+                                                                    onChange={(e) => setEditingNoteContent(e.target.value)}
+                                                                    autoSize={{ minRows: 2, maxRows: 4 }}
+                                                                />
+                                                                <Space wrap>
+                                                                    <Button
+                                                                        type='primary'
+                                                                        size='small'
+                                                                        onClick={() => handleSaveEditNote(note.id)}
+                                                                        loading={updateNoteMutation.isPending}
+                                                                    >
+                                                                        Save
+                                                                    </Button>
+                                                                    <Button 
+                                                                        size='small'
+                                                                        onClick={handleCancelEditNote}
+                                                                    >
+                                                                        Cancel
+                                                                    </Button>
+                                                                </Space>
+                                                            </Space>
+                                                        ) : (
+                                                            <>
+                                                                <Text style={{ display: 'block', marginBottom: '8px' }}>
+                                                                    {note.body}
+                                                                </Text>
+                                                                <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '8px' }}>
+                                                                    {new Date(note.created_at).toLocaleString()} • {note.created_by}
+                                                                </Text>
+                                                                <Space wrap size="small">
+                                                                    <Button 
+                                                                        size="small"
+                                                                        onClick={() => handleStartEditNote(note)}
+                                                                    >
+                                                                        Edit
+                                                                    </Button>
+                                                                    <Button 
+                                                                        danger
+                                                                        size="small"
+                                                                        onClick={() => handleDeleteNote(note.id)}
+                                                                    >
+                                                                        Delete
+                                                                    </Button>
+                                                                </Space>
+                                                            </>
+                                                        )}
+                                                    </Card>
+                                                ))}
+                                            </Flex>
+                                        </Space>
+                                    )
+                                },
+                                {
+                                    key: "3",
+                                    label: "Activities",
+                                    children: <LeadActivitiesTab />
+                                },
+                                {
+                                    key: "4",
+                                    label: "Tasks",
+                                    children: <LeadTasksTab />
+                                }
+                            ]}
+                        />
                     </Card> 
                     {leadData && (
-                                    <LeadEditModal
-                                        lead={leadData}
-                                        isOpen={showEditModal}
-                                        onClose={() => setShowEditModal(false)}
-                                    />
-                                  )}
-
+                        <LeadEditModal
+                            lead={leadData}
+                            isOpen={showEditModal}
+                            onClose={() => setShowEditModal(false)}
+                        />
+                    )}
                 </div>
             )}
         </div>
