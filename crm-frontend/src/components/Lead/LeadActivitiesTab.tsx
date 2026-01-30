@@ -40,14 +40,12 @@ const LeadActivitiesTab = () => {
     const isLoading = isLoadingActivities;
 
     const activityIconMap: Record<ActivityKind, React.ReactNode> = {
-
         call: <PhoneOutlined />, 
         follow_up_call: <PhoneOutlined />,
         email: <MailOutlined />,
         meeting: <CalendarOutlined />,
         whatsapp: <WhatsAppOutlined />,
         note: <BookOutlined />
-
     }
 
     const createActivityMutation = useMutation({
@@ -140,28 +138,27 @@ const LeadActivitiesTab = () => {
     }
 
     if (isLoading) {
-        return (<div>
-            <Spin size="large" />
-        </div>)
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+                <Spin size="large" />
+            </div>
+        )
     }
 
     if (!activitiesData) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px' }}>
                 <Card><p>Activities not found</p></Card>
             </div>
         )
     }
 
-
-
     return (
-        <div className="w-full">
-            <Space orientation="vertical" className="w-full" size="large">
-
+        <div style={{ width: '100%' }}>
+            <Space orientation="vertical" style={{ width: '100%' }} size="large">
                 <Card size="small" title="Log Activity">
-                    { error && <Text type="danger">{error}</Text> }
-                    <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+                    {error && <Text type="danger" style={{ display: 'block', marginBottom: '8px' }}>{error}</Text>}
+                    <Space orientation="vertical" style={{ width: '100%' }} size="middle">
                         <Select
                             value={newActivityContent.kind}
                             onChange={(kind) =>
@@ -170,106 +167,123 @@ const LeadActivitiesTab = () => {
                                 )
                             }
                             options={activityKindOptions}
-                            className="w-full sm:w-48"
+                            style={{ width: '100%' }}
                         />
 
                         <Input
                             value={newActivityContent.summary ?? ""}
                             onChange={(e) => setNewActivityContent((p) => ({...p, summary: e.target.value}))}
                             placeholder="Write a summary (eg. Called client regarding documents...)"
-                            className="flex-1"
+                            style={{ width: '100%' }}
                         />
                         <Button
                             type="primary"
                             icon={<PlusOutlined />}
                             onClick={handleAddActivity}
                             loading={createActivityMutation.isPending}
-                            className="w-full sm:w-auto"
+                            block
                         >
                             Add
                         </Button>
-                    </div>
+                    </Space>
                 </Card>
 
                 <Card size="small" title={`Timeline (${activitiesData.total_count})`}>
-                    {activitiesData.total_count === 0 ? (<Text type="secondary">No activities logged.</Text>) :
-
-                        (
-                            <Timeline
-                                items={activitiesData.activities.map((activity) => {
-                                    return {
-                                        icon: activityIconMap[activity.kind],
-                                        title: (<Text type="secondary">
-                                            {new Date(activity.occurred_at).toLocaleString()}
-                                        </Text>),
-                                        content: (
-                                            <div>
-                                               {editingActivityId !== activity.id ? (
-                                                <>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                                <div style={{ flex: 1}}>
-                                                <div style={{ fontWeight: 600 }}>{activity.kind.replace("_", " ")}</div>
-                                                <div>{activity.summary ?? <Text type="secondary">No Summary</Text>}</div>
-                                                </div>
-                                                <Space size="small">
-                                                    <Button type="text" size="small" icon={<EditOutlined/>} onClick={() => handleStartEditActivity(activity)}/>
-
-                                                    <Popconfirm 
-                                                        title="Delete this activity"
-                                                        description="Are you sure you want to delete this activity?"
-                                                        okText="Yes"
-
-                                                        cancelText="No"
-                                                        onConfirm={() => handleDeleteActivity(activity.id)}>
-                                                            <Button type="text" size="small" danger icon={<DeleteOutlined/>} loading={deleteActivityMutation.isPending}/>
-                                                        </Popconfirm>
-                                                </Space>
-                                                </div>
-                                                </>
-                                                ) : (
-                                                    <>
-                                                        <Text strong>Edit Activity</Text>
-
-                                                        <Input.TextArea 
-                                                            value={editingActivityContent}
-                                                            onChange={(e) => setEditingActivityContent(e.target.value)}
-                                                            autoSize={{ minRows: 2, maxRows: 4 }}
-                                                            style={{ marginTop: 10 }} />
-
-                                                        <Space style={{ marginTop: 10}}>
+                    {activitiesData.total_count === 0 ? (
+                        <Text type="secondary">No activities logged.</Text>
+                    ) : (
+                        <Timeline
+                            items={activitiesData.activities.map((activity) => {
+                                return {
+                                    dot: activityIconMap[activity.kind],
+                                    color: 'blue',
+                                    children: (
+                                        <div style={{ marginBottom: '16px' }}>
+                                            <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '8px' }}>
+                                                {new Date(activity.occurred_at).toLocaleString()}
+                                            </Text>
+                                            {editingActivityId !== activity.id ? (
+                                                <div>
+                                                    <div style={{ marginBottom: '8px' }}>
+                                                        <Text strong style={{ textTransform: 'capitalize' }}>
+                                                            {activity.kind.replace("_", " ")}
+                                                        </Text>
+                                                    </div>
+                                                    <div style={{ marginBottom: '12px' }}>
+                                                        {activity.summary ? (
+                                                            <Text>{activity.summary}</Text>
+                                                        ) : (
+                                                            <Text type="secondary" italic>No Summary</Text>
+                                                        )}
+                                                    </div>
+                                                    <Space wrap size="small">
+                                                        <Button 
+                                                            type="text" 
+                                                            size="small" 
+                                                            icon={<EditOutlined/>} 
+                                                            onClick={() => handleStartEditActivity(activity)}
+                                                        >
+                                                            Edit
+                                                        </Button>
+                                                        <Popconfirm 
+                                                            title="Delete this activity?"
+                                                            description="This action cannot be undone."
+                                                            okText="Delete"
+                                                            okButtonProps={{ danger: true }}
+                                                            cancelText="Cancel"
+                                                            onConfirm={() => handleDeleteActivity(activity.id)}
+                                                        >
                                                             <Button 
-                                                                type="primary"
-                                                                size="small"
-                                                                onClick={() => handleSaveEditActivity(activity)}
-                                                                loading={updateActivityMutation.isPending}>
-                                                                    Save
+                                                                type="text" 
+                                                                size="small" 
+                                                                danger 
+                                                                icon={<DeleteOutlined/>} 
+                                                                loading={deleteActivityMutation.isPending}
+                                                            >
+                                                                Delete
                                                             </Button>
-                                                            <Button size="small" onClick={handleCancelEditActivity}>
-                                                                Cancel
-                                                            </Button>
-                                                        </Space>
-                                                    </>
-                                                )} 
-                                                
-                                            </div>
-                                        )
-                                    }
-                                })}
-                            >
-
-                            </Timeline>
-                        )
-                    }
-
+                                                        </Popconfirm>
+                                                    </Space>
+                                                </div>
+                                            ) : (
+                                                <div>
+                                                    <Text strong style={{ display: 'block', marginBottom: '8px' }}>
+                                                        Edit Activity
+                                                    </Text>
+                                                    <Input.TextArea 
+                                                        value={editingActivityContent}
+                                                        onChange={(e) => setEditingActivityContent(e.target.value)}
+                                                        autoSize={{ minRows: 2, maxRows: 4 }}
+                                                        style={{ marginBottom: '8px' }}
+                                                    />
+                                                    <Space wrap size="small">
+                                                        <Button 
+                                                            type="primary"
+                                                            size="small"
+                                                            onClick={() => handleSaveEditActivity(activity)}
+                                                            loading={updateActivityMutation.isPending}
+                                                        >
+                                                            Save
+                                                        </Button>
+                                                        <Button 
+                                                            size="small" 
+                                                            onClick={handleCancelEditActivity}
+                                                        >
+                                                            Cancel
+                                                        </Button>
+                                                    </Space>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )
+                                }
+                            })}
+                        />
+                    )}
                 </Card>
             </Space>
-
-
         </div>
     )
-
-    
-
 };
 
 export default LeadActivitiesTab;
