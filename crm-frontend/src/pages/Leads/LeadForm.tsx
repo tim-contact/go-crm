@@ -17,7 +17,7 @@ type props = {
 export default function LeadForm({ initial, onSubmit, onCancel, submitting }: props) {
 
     const [form] = Form.useForm();
-    const { data: usersData } = useQuery<{ users: UserListItem[] }>({
+    const { data: usersData, isLoading: isLoadingUsers } = useQuery<{ users: UserListItem[] }>({
         queryKey: ["users"],
         queryFn: () => listUsers(),
     });
@@ -121,6 +121,8 @@ export default function LeadForm({ initial, onSubmit, onCancel, submitting }: pr
                     filterOption: (input, option) => (option?.label ?? "").toLowerCase().includes(input.toLowerCase()),
                 }}
                 allowClear
+                loading={isLoadingUsers}
+                notFoundContent={isLoadingUsers ? "Loading users..." : "No users available"}
             />
         </Form.Item>
 
