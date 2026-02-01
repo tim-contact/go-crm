@@ -20,6 +20,7 @@ import {
   List,
   Dropdown
 } from "antd";
+
 import { 
   CloseSquareTwoTone, 
   SearchOutlined, 
@@ -27,8 +28,14 @@ import {
   FilterOutlined,
   EditOutlined,
   DeleteOutlined,
-  MoreOutlined
+  MoreOutlined,
+  PhoneTwoTone,
+  BookTwoTone,
+  BankTwoTone,
+  CalendarTwoTone
 } from "@ant-design/icons";
+
+
 import { Dayjs } from "dayjs";
 
 const { RangePicker } = DatePicker;
@@ -204,22 +211,26 @@ export default function LeadsList() {
         <Space orientation="vertical" size={2} style={{ width: '100%' }}>
           {lead.whatsapp_no && (
             <Text type="secondary" style={{ fontSize: '13px' }}>
-              📱 {lead.whatsapp_no}
+              <PhoneTwoTone style={{ marginRight: 6 }} />
+              {lead.whatsapp_no}
             </Text>
           )}
           {lead.field_of_study && (
             <Text type="secondary" style={{ fontSize: '13px' }}>
-              📚 {lead.field_of_study}
+              <BookTwoTone style={{ marginRight: 6 }} />
+              {lead.field_of_study}
             </Text>
           )}
           {lead.branch_name && (
             <Text type="secondary" style={{ fontSize: '13px' }}>
-              🏢 {lead.branch_name}
+              <BankTwoTone style={{ marginRight: 6 }} />
+              {lead.branch_name}
             </Text>
           )}
           {lead.inquiry_date && (
             <Text type="secondary" style={{ fontSize: '13px' }}>
-              📅 {new Date(lead.inquiry_date).toLocaleDateString("en-IN")}
+              <CalendarTwoTone style={{ marginRight: 6 }} />
+              {new Date(lead.inquiry_date).toLocaleDateString("en-IN")}
             </Text>
           )}
         </Space>
@@ -464,11 +475,10 @@ export default function LeadsList() {
           {/* Error Alert */}
           {error && (
             <Alert
-              message={error}
+              title={error}
               type="error"
               showIcon
-              closable
-              onClose={() => setError("")}
+              closable={{onClose : () => setError("")}}
             />
           )}
         </Space>
