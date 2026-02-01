@@ -101,15 +101,14 @@ export const LeadEditModal = ({ lead, isOpen, onClose }: LeadEditModalProps) => 
         </Title>
       }
       width={600}
-      destroyOnClose
+      destroyOnHidden
     >
       {error && (
         <Alert
-          message={error}
+          title={error}
           type="error"
           showIcon
-          closable
-          onClose={() => setError(null)}
+          closable={{onClose : () => setError(null)}}
           style={{ marginBottom: 16 }}
         />
       )}

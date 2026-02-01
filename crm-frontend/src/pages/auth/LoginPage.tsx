@@ -3,6 +3,7 @@ import { useNavigate, Navigate } from "react-router-dom";
 import { Form, Input, Button, Typography, Alert, Space } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { login } from "@/api/auth";
+import { useAuth } from "@/auth/AuthContext";
 import "@/styles/glass.css"; // Import the glass CSS
 
 const { Title, Text } = Typography;
@@ -12,7 +13,7 @@ const LoginPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     
-    const token = localStorage.getItem("token");
+    const token = useAuth().token;
     
     
     if (token) {
